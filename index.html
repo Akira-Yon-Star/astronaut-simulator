@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#060b14">
+<meta name="description" content="Posto Avançado: simulador educacional de sobrevivência em bases na Lua e em Marte, com pilotagem e dados reais da NASA.">
+<title>Posto Avançado · Centro de Controle</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%230a1424' stroke='%2363ddff' stroke-width='4'/%3E%3Ccircle cx='32' cy='32' r='12' fill='%23ffc45c'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ============ Tokens ============ */
+:root{
+ color-scheme:dark;
+ --bg:#060b14;--p1:#14243a;--p2:#0a1422;--ink:#06101b;
+ --line:#2d4a68;--line2:#456d93;
+ --tx:#e8f3ff;--dm:#9db3cc;
+ --am:#ffc45c;--cy:#63ddff;--gr:#65e6a0;--rd:#ff777d;--pk:#ff86a8;
+ --r:14px;
+ --fh:Rajdhani,system-ui,sans-serif;--fb:Barlow,system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;color:var(--tx);font:16px/1.45 var(--fb);letter-spacing:.01em;
+ background:radial-gradient(1100px 650px at 50% -10%,#1d3a5e 0,#0a1424 55%,#05080f 100%) fixed}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
+ background:linear-gradient(#63ddff08 1px,transparent 1px) 0 0/100% 40px,linear-gradient(90deg,#63ddff08 1px,transparent 1px) 0 0/40px 100%}
+main{max-width:1560px;margin:0 auto;padding:clamp(10px,2vw,28px);padding-bottom:calc(clamp(10px,2vw,28px) + env(safe-area-inset-bottom,0px))}
+h1,h2,h3,.n{font-family:var(--fh)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--cy);outline-offset:3px;border-radius:6px}
+ul,ol{padding-left:20px;margin:6px 0}
+.skip{position:absolute;left:-999px;top:0;background:var(--cy);color:var(--ink);padding:8px 14px;z-index:50;border-radius:0 0 8px 0}.skip:focus{left:0}
+.dm{color:var(--dm);font-size:.8rem;line-height:1.3;display:block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ============ Painéis ============ */
+.pn{position:relative;background:linear-gradient(150deg,#17304a 0%,var(--p2) 55%,#060f19 100%);border:1px solid var(--line);border-radius:var(--r);
+ box-shadow:0 16px 36px #0007,inset 0 1px #ffffff14,inset 0 0 26px #63ddff0d;padding:14px;min-width:0}
+.pn::before,.pn::after{content:"";position:absolute;top:7px;width:6px;height:6px;border-radius:50%;background:radial-gradient(#d7efff,#47718f)}
+.pn::before{left:8px}.pn::after{right:8px}
+.pn h3{display:block;margin:0 0 10px;padding:0 0 5px;border-bottom:1px solid #1f6a8a;color:#7fe6ff;font-size:.8rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;text-shadow:0 0 8px #3fd0ff66}
+.pn h3.sub{margin-top:12px}
+.scr{background:repeating-linear-gradient(0deg,#0000 0 3px,#7eeaff0a 3px 4px),radial-gradient(ellipse at 50% 45%,#0b4050,#03141f 80%);
+ border:4px solid #1b2c3d;border-radius:8px;box-shadow:inset 0 0 30px #000,0 0 0 1px #45657f,0 0 16px #4adfff22;color:#9ff}
+svg.scr{display:block;width:100%;height:auto}
+svg.scr.sq{max-width:190px;margin:0 auto}
+.lcd{background:linear-gradient(135deg,#d9f2c9,#a9d19c);color:#15251b;border:3px solid #526d59;border-radius:8px;padding:6px 12px;font:600 .95rem var(--fh);box-shadow:inset 0 0 8px #0005}
+.lcd b{font-size:1.25rem;display:block}
+
+/* ============ Intro ============ */
+.intro{text-align:center;padding:clamp(18px,5vw,54px) 0 24px}
+.badge{display:inline-flex;padding:7px 14px;border:1px solid #3b7aa0;border-radius:99px;color:#8de5ff;background:#0b2135;font:700 .72rem var(--fb);letter-spacing:.16em;box-shadow:0 0 22px #4bdcff33}
+.intro h1{margin:16px 0 0;font-size:clamp(3rem,9vw,6rem);line-height:.95;letter-spacing:-.03em;background:linear-gradient(100deg,#fff 10%,#9ceaff 55%,#b9c8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.intro>p{max-width:680px;margin:14px auto;color:#bcd0e6;font-size:1.08rem}
+.intro h2.n{margin:22px 0 8px;font-size:1.3rem}
+.chs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.intro .chs{justify-content:center}
+.ch{padding:6px 14px;border-radius:20px;border:2px solid #405c7b;background:#101e32;color:#e5f1ff;font-weight:600;transition:.18s}
+.ch:hover{border-color:#78ddff}.ch[aria-pressed=true]{border-color:var(--am);color:#ffd27b;background:#382a17}
+.ch:disabled{opacity:.4;cursor:not-allowed}
+.levels{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:820px;margin:12px auto}
+.level{padding:12px;border:1px solid #38536d;border-radius:12px;background:#101b2d;text-align:left}
+.level b{display:block;color:var(--am);font:700 1.05rem var(--fh)}.level small{display:block;color:var(--dm);line-height:1.35;margin-top:4px}
+.level.active{border:2px solid var(--cy);background:#142a40;box-shadow:0 0 16px #3fd0ff33}
+.sites{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;margin:14px auto 0;max-width:900px;text-align:left}
+.site{display:block;width:100%;text-align:left;min-height:170px;transition:transform .2s,border-color .2s,box-shadow .2s}
+.site:hover{transform:translateY(-4px);border-color:#73dfff;box-shadow:0 18px 35px #0008,0 0 24px #47cfff22}
+.site h2{margin:0;font-size:2rem}.site p{margin:6px 0 10px;color:#bcd0e6}
+.resume{max-width:900px;margin:18px auto 0;min-height:0;border-color:var(--am)}
+.factbox{margin:18px auto 0;max-width:900px;text-align:left;padding:16px 18px;border:1px solid #315477;border-radius:var(--r);background:linear-gradient(120deg,#10243a,#0c182a);color:#d9e8f8}
+.factbox strong{color:#8de5ff;letter-spacing:.1em}
+.model-note{display:block;margin-top:8px;color:#ffd27b;font-size:.82rem}
+
+/* ============ Cabine ============ */
+.strip{padding:14px 18px}
+.bar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}.bar h2{margin:0;font-size:1.5rem}
+.crew{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font:700 .9rem var(--fh);color:#08101a;border:2px solid #1b2230;font-style:normal;cursor:pointer}
+.anns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;background:#081321;border:1px solid #1e3450;padding:6px;border-radius:8px}
+.an{font:600 .72rem var(--fh);text-transform:uppercase;letter-spacing:.06em;padding:4px 10px 4px 22px;border-radius:4px;background:#15253b;color:#91a6c1;position:relative;border:0}
+.an::before{content:"";position:absolute;left:7px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:#2a3446}
+button.an{cursor:pointer}
+.an.a{color:var(--am)}.an.a::before{background:var(--am);box-shadow:0 0 8px var(--am)}
+.an.r{color:var(--rd)}.an.r::before{background:var(--rd);box-shadow:0 0 8px var(--rd)}
+.bank{display:flex;align-items:center;gap:3px;flex-wrap:wrap;margin-top:8px;background:#081321;padding:6px 8px;border-radius:8px}
+.bank i{width:9px;height:9px;border-radius:50%;background:#2a3446}.bank i.on{background:var(--gr);box-shadow:0 0 6px var(--gr)}
+.bank .dm{display:inline;margin:0 8px}
+
+.ck{display:grid;gap:14px;margin-top:12px}
+.ck-canopy{max-width:1100px;width:100%;margin:0 auto}
+.win{border:10px solid #1b2c3d;border-radius:50% 50% 12px 12px/55% 55% 12px 12px;overflow:hidden;box-shadow:0 0 0 3px #56738f,inset 0 0 70px #000,0 18px 42px #0008}
+.win svg{display:block;width:100%;height:auto}
+.ck-deck{display:grid;gap:12px;grid-template-columns:.85fr .95fr 1.7fr .95fr .85fr;align-items:start;perspective:1400px}
+.ck-main{border-color:#7fe8ff;box-shadow:0 0 0 3px #080c14,0 0 30px #3fd0ff55,inset 0 0 26px #3fd0ff22}
+.ck-ol{transform:rotateY(18deg) scale(.97);transform-origin:right center}.ck-il{transform:rotateY(8deg);transform-origin:right center}
+.ck-ir{transform:rotateY(-8deg);transform-origin:left center}.ck-or{transform:rotateY(-18deg) scale(.97);transform-origin:left center}
+.ck-low{display:grid;gap:12px;grid-template-columns:.8fr 1.1fr 1.3fr 1fr;align-items:start}
+.ck-radio{display:grid;gap:12px;grid-template-columns:1.2fr 1fr}
+.ck-svg{display:block;width:100%;max-width:130px;margin:0 auto}
+.ck-hand{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end;text-align:center}
+.ck-suit{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #2a3d59}.ck-suit span{flex:1}
+.ck-rf{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:8px;font:600 .85rem var(--fh)}.ck-rf span{display:flex;gap:6px;align-items:center}
+.ck-clk{cursor:pointer;border-radius:8px}.ck-clk:hover{outline:2px solid #63ddff55;outline-offset:2px}
+[data-ctl]{touch-action:none;user-select:none;-webkit-user-select:none}
+svg[data-ctl]{cursor:grab}svg[data-ctl]:active{cursor:grabbing}
+
+.dials{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.dl{text-align:center}.dl svg{width:100%;max-width:150px}.dl b{display:block;font:700 .95rem var(--fh);color:#f0f6ff}.dl small{display:block;font-size:.75rem;color:#a9c0d8;line-height:1.2}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.log{max-height:190px;overflow:auto;padding:10px;font-size:.9rem}.log p{margin:0 0 6px}
+.tip{color:#ffc15c}.fact{color:#7be8ff}.alert{color:#ff8a80}
+.lg{display:flex;gap:10px;flex-wrap:wrap;font-size:.78rem;margin-top:4px;background:#081321;padding:3px 8px;border-radius:6px}
+.row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #2a3d59}.row:last-child{border:0}.row>span{flex:1}.row b{color:#e6f6ff}
+.led{width:12px;height:12px;border-radius:50%;background:#2a3446;flex:none;box-shadow:inset 0 0 3px #000}.led.on{background:var(--gr);box-shadow:0 0 8px var(--gr)}.led.bad{background:var(--rd);box-shadow:0 0 8px var(--rd)}
+.sw{width:58px;height:28px;background:#1b2230;border:2px solid #4a6177;border-radius:16px;position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:linear-gradient(#f1f5fa,#8793a3);transition:left .2s}
+.sw[aria-pressed=true]{border-color:var(--gr)}.sw[aria-pressed=true]::after{left:32px}
+.seg{display:flex;gap:2px;margin:3px 0 8px;background:#081321;padding:4px;border-radius:5px}.seg i{flex:1;height:12px;border-radius:2px}
+.parts{font:700 1.3rem var(--fh);color:var(--am);display:block;margin-bottom:6px}
+.keys{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.key{background:linear-gradient(#0e2a3a,#081824);border:2px solid #2aa6c8;border-left:7px solid var(--k);border-radius:8px;color:#bff4ff;padding:6px 8px;text-align:left;display:flex;flex-direction:column;box-shadow:0 0 8px #3fd0ff33,0 4px 0 #07101c;transition:filter .15s,transform .15s}
+.key:hover:not(:disabled){filter:brightness(1.18);transform:translateY(-2px)}
+.key:active:not(:disabled){transform:translateY(2px)}
+.key:disabled{filter:grayscale(1) brightness(.6);cursor:not-allowed}
+.key b{font:700 .95rem var(--fh)}.key small{font-size:.68rem;line-height:1.2;color:#9fc4d8}.key em{font:700 .85rem var(--fh);font-style:normal;margin-top:2px;color:var(--am)}
+.haz{background:repeating-linear-gradient(-45deg,#ffd447 0 12px,#1b2230 12px 24px);padding:10px;border-radius:12px;display:grid}
+.bigbtn{min-height:84px;border-radius:50px;background:radial-gradient(circle at 35% 30%,#ff8a7a,#d1241a 55%,#7a0d08);color:#fff;font:700 1.3rem/1.1 var(--fh);letter-spacing:.04em;border:4px solid #1b2230;box-shadow:0 6px 0 #5a0a06,0 0 18px #ff554477}
+.bigbtn:active{transform:translateY(5px);box-shadow:0 1px 0 #5a0a06}
+.ck-abort{width:100%;min-height:56px;margin-top:12px;border-radius:12px;background:#3a0f10;border:3px solid var(--rd);color:#ffd8d6;font:700 1.05rem var(--fh);letter-spacing:.06em}.ck-abort:hover{background:#561416}
+.go{background:linear-gradient(110deg,#ffd47d,#ffad35);color:#241800;font:700 1.2rem var(--fh);padding:12px 22px;border-radius:12px;width:100%;box-shadow:0 4px 0 #a96b17;margin-top:10px}
+.go.alt{background:#16435a;color:#e6f6ff;box-shadow:0 4px 0 #0b2535}
+.edu{padding:10px}.edu p{margin:0}
+.flow{animation:fl 1s linear infinite}@keyframes fl{to{stroke-dashoffset:-12}}
+.sweep{transform-origin:80px 80px;animation:sw 4s linear infinite}@keyframes sw{to{transform:rotate(360deg)}}
+.mx{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:#081321;padding:6px;border-radius:6px}
+.mx i{height:32px;border-radius:4px;font:700 .6rem/32px var(--fh);text-align:center;color:#06101b;font-style:normal;box-shadow:inset 0 -3px #0004;white-space:nowrap;overflow:hidden}
+.sls{display:flex;justify-content:space-around;margin-top:4px}.sl{text-align:center}
+.sl .tr{position:relative;width:14px;height:90px;background:#081321;border-radius:7px;margin:0 auto 4px}
+.sl .tr i{position:absolute;left:-6px;width:26px;height:12px;border-radius:3px;border:2px solid #1b2230}
+.sl b,.kn b{font:600 .72rem var(--fh);display:block}.kns{display:flex;justify-content:space-around;margin-top:10px}.kn{text-align:center}.kn svg{width:54px}
+.ck-lev{width:30px!important;cursor:ns-resize}.ck .ck-lev i{left:2px!important}
+.ck-peds{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 4px}
+.ck-ped{height:46px;border-radius:8px;background:linear-gradient(#2b3a52,#141c2a);border:2px solid #56637a;border-bottom-width:6px;color:#cfe0ff;font:700 .85rem var(--fh)}
+.ck-ped.down{border-bottom-width:2px;transform:translateY(4px);border-color:var(--cy);color:var(--cy)}
+
+/* Pilotagem */
+.ck-rudder{margin:10px 0 6px;padding:9px;border:1px solid #38536d;border-radius:10px;background:linear-gradient(145deg,#0b1726,#101f31)}
+.ck-rudder-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font:700 .85rem var(--fh);color:#cfe0ff}
+.ck-rudder-readout{font:700 1.15rem var(--fh);color:var(--cy);font-variant-numeric:tabular-nums}
+.ck-rudder svg{display:block;width:100%;max-width:230px;height:auto;margin:2px auto}
+.ck-rudder-state{text-align:center;font:700 .78rem var(--fh);letter-spacing:.1em;color:var(--am)}
+.ck-rudder-legend{display:flex;justify-content:space-between;color:#8fa6c2;font-size:.68rem}
+.ck-flight{margin-top:10px;padding:10px;border:1px solid #2a6d86;border-radius:10px;background:linear-gradient(135deg,#0b2030,#101b2d)}
+.ck-flight-head{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.ck-flight button.act{background:#16435a;border:1px solid var(--cy);border-radius:8px;padding:8px 12px;font-weight:700;color:#e6f6ff}.ck-flight button.act:hover{background:#1d5c76}
+.ck-mission-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.ck-mission-tabs .ch{font-size:.76rem;padding:5px 9px}
+.ck-mission-grid{display:grid;grid-template-columns:112px 1fr;gap:12px;align-items:center;margin:8px 0}.ck-mission-grid svg{width:112px;max-width:100%}
+.ck-mission-name{font:700 1.1rem var(--fh);color:#eaf7ff}
+.ck-mission-tag{display:inline-block;margin-left:8px;padding:2px 7px;border-radius:5px;background:#203650;color:var(--am);font:700 .65rem var(--fh);letter-spacing:.06em}
+.ck-flight .dm{margin:4px 0}
+.ck-flight-meter{height:10px;background:#07111d;border:1px solid #38536d;border-radius:20px;overflow:hidden;margin:10px 0}
+.ck-flight-meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--rd),var(--am),var(--gr));transition:width .2s}
+.ck-flight-telemetry{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:10px 0}
+.ck-flight-stat{padding:8px;border:1px solid #304b68;border-radius:8px;background:#091725;min-width:0}
+.ck-flight-stat small{display:block;color:#8fa6c2;font-size:.66rem;letter-spacing:.04em}
+.ck-flight-stat b{display:block;color:#dff6ff;font:700 1rem var(--fh);overflow-wrap:anywhere}
+.ck-flight-stat.warn b{color:#ffb45c}
+.ck-flight-actions{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}.ck-flight-actions button{font-size:.76rem;padding:7px 9px}
+.ck-control-guide{margin-top:8px;padding:8px;border-radius:8px;background:#0a1725;border:1px dashed #38536d;color:#9eb2cc;font-size:.75rem;line-height:1.5}.ck-control-guide b{color:#dff6ff}
+
+/* Modais e toast */
+.modal{position:fixed;inset:0;background:#030914ee;backdrop-filter:blur(9px);display:grid;place-items:center;padding:16px;z-index:30;overflow:auto}
+.modal>.pn{max-width:580px;width:100%;border-color:var(--line2)}
+.modal h2{font-size:1.8rem;margin:0 0 4px}
+.bc{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--rd);margin-right:8px;animation:bl 1s infinite}@keyframes bl{50%{opacity:.15}}
+.opt{display:block;width:100%;text-align:left;margin-top:10px;background:#10223a;color:#e8f0ff;border:2px solid #2d4868;border-radius:9px;padding:11px 14px}
+.opt:hover{border-color:#78ddff;background:#17304e}.opt small{display:block;color:#9fb0c8}
+.rec{display:inline-block;padding:2px 10px;border-radius:99px;background:var(--am);color:#241800;font:700 .8rem var(--fh);letter-spacing:.08em;margin-left:8px;vertical-align:middle}
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);max-width:min(560px,92vw);background:#08182a;border:2px solid var(--cy);color:#e6f6ff;padding:10px 16px;border-radius:12px;box-shadow:0 0 24px #3fd0ff66;opacity:0;pointer-events:none;transition:.25s;z-index:40}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* NASA e fontes */
+.nasa-api{margin-top:14px;background:linear-gradient(145deg,#0b2638,#061723);border:1px solid #376078;border-radius:var(--r);padding:16px;color:#eaf4ff;text-align:left}
+.nasa-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.nasa-head h3{margin:0;color:#8de5ff;font:700 1rem var(--fb);letter-spacing:.09em;text-transform:uppercase}
+.nasa-refresh{border:1px solid #5bc8e4;border-radius:9px;padding:8px 12px;background:#0d3042;color:#eaf4ff;font-weight:700}
+.nasa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.nasa-card{background:linear-gradient(145deg,#0b1d2b,#06131e);border:1px solid #376078;border-radius:10px;padding:12px;min-width:0}
+.nasa-card h4{margin:0 0 7px;color:#8de5ff;font:700 .9rem var(--fb)}
+.nasa-card p{margin:5px 0;color:#c4d3e6;font-size:.88rem;line-height:1.4}.nasa-card small{color:#91a9c4}
+.nasa-event{padding:8px 0;border-bottom:1px solid #263f5c}.nasa-event:last-child{border:0}
+.nasa-photo{width:100%;max-height:155px;object-fit:cover;border-radius:7px;margin-top:7px;background:#07101c}
+.nasa-status{color:#ffd27b;font-size:.8rem;margin-top:10px}
+.nasa-link,.sources a{color:#8de5ff;text-decoration:none}.nasa-link:hover,.sources a:hover{text-decoration:underline}
+.sources{margin-top:14px;background:#0b1728;border:1px solid #2a4564;border-radius:12px;padding:14px 16px;color:#c4d3e6;font-size:.82rem}
+.sources h3{margin:0 0 8px;color:#8de5ff;font:700 .82rem var(--fb);letter-spacing:.1em;text-transform:uppercase;border:0;padding:0;text-shadow:none}
+.sources ul{display:flex;flex-wrap:wrap;gap:8px 22px;margin:0;padding-left:18px}
+footer{margin:22px 0 4px;text-align:center;color:#7f95b0;font-size:.78rem}
+
+/* ============ Responsivo ============ */
+@media(max-width:1250px){.ck-deck{grid-template-columns:1fr 1fr;perspective:none}.ck-main{grid-column:1/-1;order:-1}.ck-ol,.ck-il,.ck-ir,.ck-or{transform:none}.ck-low{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.ck-deck,.ck-low,.ck-radio,.two,.levels{grid-template-columns:1fr}.sites{grid-template-columns:1fr}.sources ul{display:block}.sources li{margin:5px 0}.ck-flight-telemetry{grid-template-columns:repeat(2,minmax(0,1fr))}.win{border-width:6px}}
+@media(max-width:480px){.ck-mission-grid{grid-template-columns:1fr}.ck-mission-grid svg{width:100px}.pn{padding:12px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{body{background:#fff;color:#000}.modal,#toast{display:none}}
+
+/* ============ Periféricos, caixa de botões, MFD e imersão ============ */
+body.head-on .win svg{transform:translate(var(--hx,0px),var(--hy,0px)) scale(1.1);transition:transform .12s linear}
+.sl .tr .mk{position:absolute;left:-10px;width:34px;height:2px;background:var(--cy);box-shadow:0 0 6px var(--cy);pointer-events:none;text-decoration:none}
+.ck-hand.three{grid-template-columns:1fr 1fr 1fr}
+.ck-rig{display:grid;gap:12px;grid-template-columns:1.1fr 1fr 1fr;align-items:start}
+.mfd-nav{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}.mfd-nav svg{width:100%;max-width:230px;margin:0 auto;display:block}
+.bb{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+.bb-cell{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:8px 4px;border:1px solid #2a4560;border-radius:10px;background:#081321}
+.bb-cell b{font:700 .78rem var(--fh);letter-spacing:.06em}.bb-cell small{font-size:.66rem;color:var(--dm);line-height:1.2}
+.bb-led{width:10px;height:10px;border-radius:50%;background:#2a3446}.bb-led.on{background:var(--gr);box-shadow:0 0 8px var(--gr)}
+.bb-toggle{width:34px;height:58px;border-radius:8px;background:linear-gradient(#0c1119,#1b2433);border:2px solid #56637a;position:relative}
+.bb-toggle i{position:absolute;left:5px;right:5px;height:24px;border-radius:5px;background:linear-gradient(#f1f5fa,#8793a3);bottom:5px;transition:bottom .15s}
+.bb-toggle.on{border-color:var(--gr)}.bb-toggle.on i{bottom:25px}
+.bb-cover{width:44px;height:58px;border-radius:8px;background:repeating-linear-gradient(-45deg,#ffd447 0 8px,#1b2230 8px 16px);color:#fff;font:700 .6rem var(--fh);border:2px solid #7a6a20;text-shadow:0 1px 2px #000}
+.bb-rot{width:62px;height:62px;border-radius:50%}.bb-rot svg{width:100%}
+.bb-push{padding:10px 8px;border-radius:8px;background:linear-gradient(#2b3a52,#141c2a);border:2px solid #56637a;border-bottom-width:5px;font:700 .74rem var(--fh);letter-spacing:.06em;color:#cfe0ff;width:100%}
+.bb-push:active:not(:disabled){border-bottom-width:2px;transform:translateY(3px)}.bb-push:disabled{opacity:.45;cursor:not-allowed}
+.bb-push.caution{background:linear-gradient(#4a3510,#2a1d08);border-color:var(--am);color:var(--am)}
+.bb-push.caution.blink{animation:bl .8s infinite}
+.rg{display:grid;grid-template-columns:1fr 1fr 44px;align-items:center;gap:8px;font-size:.82rem;margin:6px 0;color:var(--dm)}
+.rg input{width:100%;accent-color:var(--cy)}.rg output{font:700 .8rem var(--fh);color:var(--cy);text-align:right}
+.pad{padding:6px 8px;border:1px solid #2a4560;border-radius:8px;background:#081321;margin:4px 0;font-size:.8rem;color:#cfe0ff;overflow-wrap:anywhere}
+.gd{padding:8px 0;border-bottom:1px solid #2a3d59}.gd:last-child{border:0}.gd b{color:#e6f6ff}.gd p{margin:3px 0;font-size:.82rem;color:var(--dm)}.gd .g{color:#7fe6ff}
+@media(max-width:1250px){.ck-rig{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.ck-rig,.mfd-nav{grid-template-columns:1fr}.ck-hand.three{grid-template-columns:1fr}.bb{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<a class="skip" href="#app">Pular para o conteúdo</a>
+<main id="app" aria-live="off"></main>
+<noscript><p style="padding:24px;text-align:center">Este simulador precisa de JavaScript para funcionar.</p></noscript>
+<script>
+'use strict';
+/* ============================================================
+   POSTO AVANÇADO · v6
+   Estrutura: dados → persistência → motor → visões → entrada → NASA → boot
+   ============================================================ */
+
+/* ---------- Dados e constantes ---------- */
+const MAXD=20,BASE={solar:3,oxy:4,rec:4,farm:4,shield:3,batt:3};
+const INFO={solar:['Painéis solares','Geram energia só com luz.'],oxy:['Geradores de O₂','Fazem ar; gastam muita energia.'],rec:['Recicladores de água','Reaproveitam água; gastam energia.'],farm:['Estufas','Produzem comida; gastam água e energia.'],shield:['Blindagem (nível)','Reduz a radiação. Cada nível custa mais.'],batt:['Baterias','Guardam energia para a noite.']};
+const DN=['Treinamento','Missão','Sobrevivência'],DD=['Mais recursos e mais margem para erro.','Recursos limitados, eventos com mais impacto.','Poucos recursos, mais eventos e radiação forte.'];
+const DF=[{r:1.25,e:.4,k:.8,pt:8},{r:.9,e:.6,k:1.15,pt:5},{r:.75,e:.8,k:1.4,pt:4}];
+const EDU={'Radiação':'No espaço, o Sol e estrelas distantes lançam partículas que danificam células. A blindagem (solo, água, camadas de material) absorve parte delas. Cada nível custa mais peças: segurança não é de graça.','Oxigênio':'O ar pode ser feito separando a água em hidrogênio e oxigênio com eletricidade (eletrólise). Por isso ar, água e energia andam juntos.','Água':'Na Estação Espacial Internacional mais de 90% da água é reciclada. Cada litro reaproveitado é um litro que não precisa vir da Terra, mas reciclar gasta energia.','Alimentos':'Plantas dão comida e renovam o ar, mas precisam de luz, água e energia. Trazer comida da Terra é mais seguro no começo, mas ocupa espaço e peso.','Energia':'Painéis solares dependem do Sol: a noite lunar dura cerca de 14 dias e Marte recebe cerca de metade da luz da Terra. Baterias guardam energia para esses momentos.','Manutenção':'Poeira, calor e frio desgastam os equipamentos. Peças de reposição e revisões regulares evitam que pequenas falhas virem emergências.'};
+const FACTS=['Sem atmosfera, na Lua um astronauta recebe em um dia a radiação que na Terra receberia em cerca de seis meses.','Um dia em Marte dura 24 horas e 39 minutos.','A noite lunar dura cerca de 14 dias terrestres. Aqui ela foi encurtada para caber no jogo.'];
+const TUT=['Cada dia, use as peças para construir ou melhorar módulos e ajuste os interruptores de energia.','Veja a previsão abaixo de cada medidor: ela mostra o que vai acontecer hoje.','Nada é de graça: mais ar, água ou comida gasta energia; mais blindagem gasta peças.','Equipamentos se desgastam. Faça manutenção antes que a eficiência caia.','Nos alertas, não existe resposta certa, só trocas. Escolha com cuidado!','Complete as missões de pilotagem (75+ pontos) para ganhar peças extras e pontos no final. O jogo é salvo automaticamente.'];
+const CREW=['Ana, comandante','Bruno, engenheiro','Carla, médica','Davi, botânico','Elisa, geóloga','Fábio, piloto'];const CROPS={alface:{n:'Alface e verduras',f:1.3,w:1.4,en:1.1,d:'Crescem rápido e rendem muito, mas bebem bastante água.'},batata:{n:'Batata',f:1,w:1,en:1,d:'Rendimento e consumo equilibrados.'},soja:{n:'Soja e feijão',f:.8,w:.7,en:.8,d:'Rendem menos, mas poupam água e energia e dão proteína.'}};const NC=()=>(S&&S.crew)||4,CR=()=>CROPS[S&&S.crop]||CROPS.batata;
+const FLIGHT_MISSIONS=[
+ {name:'Alinhamento orbital',tag:'INICIANTE',objective:'Alinhar a nave ao farol orbital e estabilizar a atitude.',goal:{x:.30,y:-.20,th:.55},obstacles:[{x:-.62,y:.55,r:.30,name:'Zona de detritos'}],hint:'Aproxime o manche do marcador azul e mantenha os motores equilibrados.'},
+ {name:'Corredor de detritos',tag:'INTERMEDIÁRIA',objective:'Atravessar o corredor sem entrar na área marcada por fragmentos.',goal:{x:-.45,y:.35,th:.42},obstacles:[{x:.28,y:-.35,r:.42,name:'Campo de fragmentos'}],hint:'Faça uma correção suave para a esquerda e para cima; evite o setor vermelho.'},
+ {name:'Controle de atitude',tag:'AVANÇADA',objective:'Manter a nave estável enquanto ajusta a potência dos dois motores.',goal:{x:.05,y:-.05,th:.68},obstacles:[{x:-.62,y:.62,r:.32,name:'Área de oscilação'}],hint:'Centralize o manche, aproxime os motores de 68% e mantenha a guinada zerada.'},
+ {name:'Acoplagem de precisão',tag:'ESPECIALISTA',objective:'Concluir a aproximação final com baixa potência e alinhamento fino.',goal:{x:.20,y:.15,th:.28},obstacles:[{x:-.52,y:-.52,r:.34,name:'Zona de aproximação proibida'}],hint:'Use movimentos pequenos. Os dois motores devem ficar próximos de 28%.'}
+];
+const KC={solar:'#ffd447',oxy:'#5ad1ff',rec:'#8fa8ff',farm:'#7be08a',shield:'#ff8aa5',batt:'#ffa14a',maint:'#e8eef7'};
+
+/* ---------- Persistência (sempre protegida por try/catch) ---------- */
+const store={
+ get(k,d){try{const v=localStorage.getItem('pa6:'+k);return v?JSON.parse(v):d}catch(e){return d}},
+ set(k,v){try{localStorage.setItem('pa6:'+k,JSON.stringify(v))}catch(e){}},
+ del(k){try{localStorage.removeItem('pa6:'+k)}catch(e){}}
+};
+const prefs=Object.assign({sound:true,profile:'hotas',sens:1,dz:.06,expo:.3,invY:false,head:false,haptic:false,lang:''},store.get('prefs',{}));
+const best=store.get('best',{});
+
+/* ---------- Estado global ---------- */
+let S=null,D=1;                 // S: partida; D: dificuldade escolhida
+const UI={abort:false,mfd:'PWR',gd:0,cover:{}};         // estado transitório de interface (não salvo)
+const C={jx:0,jy:0,lx:0,ly:0,th:[.5,.5],link:false,yaw:0,pl:0,pr:0,lastScore:null,attempts:0};
+const app=document.getElementById('app');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ---------- Áudio (um único contexto, reaproveitado) ---------- */
+let AC=null;
+function beep(f,d){
+ if(!prefs.sound)return;
+ try{
+  AC=AC||new(window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==='suspended')AC.resume();
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.035,AC.currentTime);g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d/1000);
+  o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+d/1000);
+ }catch(e){}
+}
+
+/* ---------- Periféricos: curva de eixos, manetes ligadas, háptica ---------- */
+function shape(v,dz){dz=dz||0;let a=Math.abs(v);if(a<=dz)return 0;a=(a-dz)/(1-dz);a=(1-prefs.expo)*a+prefs.expo*a*a*a;return v<0?-a:a}
+function setTh(i,v){C.th[i]=clamp(v,0,1);if(C.link){C.th[1-i]=C.th[i];levUI(1-i)}}
+function centerAll(){C.jx=C.jy=C.lx=C.ly=C.yaw=0;C.pl=C.pr=0;pedUI();att()}
+function pads(){try{return[...(navigator.getGamepads?navigator.getGamepads():[])].filter(Boolean)}catch(e){return[]}}
+function buzz(p){
+ if(!prefs.haptic)return;
+ try{if(navigator.vibrate)navigator.vibrate(p)}catch(e){}
+ try{for(const g of pads()){const a=g.vibrationActuator;if(a&&a.playEffect)a.playEffect('dual-rumble',{duration:Array.isArray(p)?p[0]:p,strongMagnitude:.6,weakMagnitude:.4})}}catch(e){}
+}
+
+/* ---------- Motor do jogo ---------- */
+const cap=()=>40+S.m.batt*30,sg=n=>(n>=0?'+':'')+n.toFixed(0),sf=()=>Math.max(.2,1-.2*S.m.shield),dn=(k,n)=>S[k]=Math.max(0,S[k]-n),cost=k=>BASE[k]+(k==='shield'?S.m.shield:0),eff=()=>.4+.6*S.cond/100;
+const vals=()=>[S.o2,S.wa,S.food,S.en/cap()*100,S.h];
+const goal=()=>FLIGHT_MISSIONS[S.fl.i].goal;
+
+function resetControls(){C.jx=0;C.jy=0;C.lx=0;C.ly=0;C.th=[.5,.5];C.yaw=0;C.pl=C.pr=0;C.lastScore=null;C.attempts=0}
+
+function start(site){
+ const f=DF[D];resetControls();UI.abort=false;
+ S={v:6,site,D,d:1,o2:Math.min(100,80*f.r),wa:Math.min(100,70*f.r),food:Math.min(100,60*f.r),en:60,h:100,parts:f.pt,cond:100,dust:0,dirty:0,log:[],ev:null,evk:null,over:null,tut:true,edu:'Radiação',
+  m:{solar:2,oxy:1,rec:1,farm:1,shield:1,batt:1},on:{oxy:true,farm:true,rec:true},hist:[],
+  fl:{i:0,res:[null,null,null,null],pts:0,rew:[0,0,0,0]},sw:{shield:false,eco:false,hold:false}};
+ S.hist.push(vals());
+ S.log.push('<p>Controle da Missão: bem-vindo, comandante! Mantenha os 4 astronautas vivos por '+MAXD+' dias até a nave de reabastecimento chegar.</p>');
+ beep(520,120);render();
+}
+function resume(){
+ const sv=store.get('save',null);
+ if(!sv||!sv.S||sv.S.v!==6)return;
+ S=sv.S;D=S.D;S.ev=null;UI.abort=false;S.sw=S.sw||{shield:false,eco:false,hold:false};resetControls();
+ if(S.evk!=null&&EVENTS[S.evk])S.ev=EVENTS[S.evk]();else S.evk=null;
+ S.tut=false;beep(520,100);render();
+}
+function save(){if(S&&!S.over)store.set('save',{S:Object.assign({},S,{ev:null})})}
+
+function light(){let l=S.site==='lua'?((S.d>=11&&S.d<=16)?.1:1):.55;if(S.dust>0)l*=.25;if(S.dirty>0)l*=.6;return l}
+function project(){
+ const L=light(),e=eff()*(S.sw.eco?.92:1),prod=S.m.solar*10*L*e,on=S.on,m=S.m,
+ use=(6+(NC()-4)*1.5+(S.site==='marte'?5:0)+(on.oxy?m.oxy*7:0)+(on.farm?m.farm*6*CR().en:0)+(on.rec?m.rec*4:0)+(S.sw.shield?6:0))*(S.sw.eco?.85:1),
+ avail=S.en+prod,fr=avail>=use?1:Math.max(0,avail/use),rad=(S.site==='lua'?3.5:2.5)*sf()*DF[D].k*(S.sw.shield?.6:1),
+ o2d=(on.oxy?m.oxy*3*fr*e:0)-NC(),wd=(on.rec?m.rec*2.5*fr*e:0)-NC()-(on.farm?m.farm*1.5*CR().w:0),fd=(on.farm?m.farm*2*CR().f*fr*e:0)-NC()*.75,ed=prod-use,
+ neg=[[S.o2,o2d],[S.wa,wd],[S.food,fd],[S.en,ed]].filter(x=>x[1]<0).map(x=>x[0]/-x[1]);
+ return{L,prod,use,fr,rad,e,o2d,wd,fd,ed,aut:neg.length?Math.floor(Math.min(...neg)):null,msv:rad/DF[D].k*(S.site==='lua'?.4:.27),en:Math.min(cap(),Math.max(0,avail-use)),hd:-rad-(S.food<=0?10:0)-(S.wa<=0?10:0)};
+}
+function build(k){const c=cost(k);if(S.parts<c||(k==='shield'&&S.m.shield>=4))return;S.parts-=c;S.m[k]++;beep(660,80);render()}
+function toggle(k){S.on[k]=!S.on[k];beep(300,50);render()}
+function maint(){if(S.parts<2)return;S.parts-=2;S.cond=Math.min(100,S.cond+35);S.log.unshift('<p>Manutenção feita: equipamentos em '+S.cond+'%.</p>');beep(600,80);render()}
+function objs(){return[
+ ['Sobreviver '+MAXD+' dias',S.d>MAXD&&S.h>0],
+ ['Ter 2 ou mais estufas',S.m.farm>=2],
+ ['Terminar com saúde acima de 60',S.h>60],
+ ['Equipamentos acima de 50%',S.cond>50],
+ ['Concluir 2 missões de pilotagem',S.fl.res.filter(v=>v!==null&&v>=75).length>=2]]}
+function score(win){return Math.round(S.h*4+(S.o2+S.wa+S.food)/3*2+objs().filter(o=>o[1]).length*150+Math.round(S.fl.pts*.5)+(win?300:S.d*10)+((S.crew||4)-4)*40)}
+function stars(sc){return sc>=1000?3:sc>=700?2:1}
+
+function endDay(){
+ const p=project(),en0=S.en;
+ S.en=p.en;S.o2=clamp(S.o2+p.o2d,0,100);S.wa=clamp(S.wa+p.wd,0,100);S.food=clamp(S.food+p.fd,0,100);S.h=Math.max(0,S.h+p.hd);
+ S.cond=Math.max(0,S.cond-3);S.parts+=2+Math.max(0,NC()-4);if(S.dust>0)S.dust--;if(S.dirty>0)S.dirty--;
+ S.log.unshift('<p>Dia '+S.d+' encerrado. Energia '+sg(S.en-en0)+', O₂ '+sg(p.o2d)+', água '+sg(p.wd)+', comida '+sg(p.fd)+'.</p>');
+ if(p.fr<1)S.log.unshift('<p class="tip">Faltou energia: os sistemas rodaram com '+Math.round(p.fr*100)+'% da força.</p>');
+ if(S.food<=0||S.wa<=0)S.log.unshift('<p class="tip">Sem comida ou água a saúde cai rápido!</p>');
+ S.d++;S.hist.push(vals());beep(440,90);
+ if(S.o2<=0)return finish(false,'O oxigênio acabou. Sem ar, a missão foi abortada.');
+ if(S.h<=0)return finish(false,'A tripulação adoeceu demais por causa da radiação, da fome ou da sede.');
+ if(S.d>MAXD)return finish(true);
+ if(S.site==='lua'&&S.d===9)S.log.unshift('<p class="tip">Aviso: a noite lunar começa no dia 11 e dura 6 dias. Sem sol os painéis não geram nada. Encha as baterias!</p>');
+ else if(Math.random()<.3)S.log.unshift('<p class="fact">Você sabia? '+FACTS[Math.floor(Math.random()*FACTS.length)]+'</p>');
+ if(S.log.length>40)S.log.length=40;
+ if(Math.random()<DF[D].e){
+  const pool=EVENTS.map((f,i)=>[f,i]).filter(x=>!x[0].s||x[0].s===S.site),pick=pool[Math.floor(Math.random()*pool.length)];
+  S.ev=pick[0]();S.evk=pick[1];beep(220,300);buzz([250,80,250]);
+ }
+ render();
+}
+const E=(t,d,a,b,s)=>{const f=()=>({t,d,o:[a,b]});f.s=s;return f};
+const EVENTS=[
+ E('Tempestade solar','Partículas perigosas do Sol estão chegando. A blindagem faz diferença.',['Abrigar todos no módulo blindado','Gasta 10 de energia.',()=>{dn('en',10);S.h-=Math.round(10*sf());return 'Todos a salvo, com pouca radiação.'}],['Continuar trabalhando','Ganha 2 peças, mas arrisca a saúde.',()=>{S.parts+=2;S.h-=Math.round(26*sf());return 'Dose alta de radiação. Mais blindagem teria ajudado.'}]),
+ E('Micrometeorito','Uma pedra veloz furou o casco e o ar escapa.',['Consertar agora','Gasta 2 peças.',()=>{dn('parts',2);return 'Remendo feito.'}],['Deixar para depois','Sem custo, mas perde oxigênio.',()=>{dn('o2',14);return 'O vazamento levou 14 de oxigênio.'}]),
+ E('Tempestade de poeira','A poeira cobre os painéis. A luz cai por 3 dias.',['Aguentar com as baterias','Produção solar cai por 3 dias.',()=>{S.dust=3;return 'Painéis quase parados. Vigie a energia.'}],['Limpar os painéis','Gasta 8 de energia; a perda dura 1 dia.',()=>{dn('en',8);S.dust=1;return 'Painéis limpos.'}],'marte'),
+ E('Poeira lunar nos painéis','A poeira da Lua é grudenta e cobre os painéis.',['Limpar os painéis','Gasta 6 de energia.',()=>{dn('en',6);return 'Painéis brilhando de novo.'}],['Ignorar','Painéis rendem menos por 2 dias.',()=>{S.dirty=2;return 'Painéis sujos geram menos energia.'}],'lua'),
+ E('Praga na estufa','Insetos atacam as plantas.',['Tratar as plantas','Gasta 2 peças e 5 de energia.',()=>{dn('parts',2);dn('en',5);return 'Plantas salvas.'}],['Descartar folhas ruins','Perde 10 de comida.',()=>{dn('food',10);return 'Parte da comida foi descartada.'}]),
+ E('Vazamento de água','Um cano rachou e a água está escapando.',['Reparar o cano','Gasta 2 peças.',()=>{dn('parts',2);return 'Cano reparado.'}],['Fechar a válvula e esperar','Perde 12 de água.',()=>{dn('wa',12);return 'Parte da água se perdeu.'}]),
+ E('Falha de comunicação','A antena parou de falar com a Terra.',['Religar a antena','Gasta 4 de energia.',()=>{dn('en',4);return 'Contato restabelecido.'}],['Ficar sem contato','Sem custo, mas a tripulação fica tensa (-5 saúde).',()=>{S.h-=5;return 'Sem notícias de casa, o moral caiu.'}]),
+ E('Equipamento com defeito','Um sistema começou a falhar por desgaste.',['Reparar agora','Gasta 3 peças e recupera 25% da condição.',()=>{dn('parts',3);S.cond=Math.min(100,S.cond+25);return 'Equipamento reparado.'}],['Seguir assim','Condição cai 20%.',()=>{dn('cond',20);return 'A eficiência dos sistemas caiu.'}]),
+ E('Pedido da Terra','Cientistas pedem um experimento rápido: gasta energia e rende peças.',['Fazer o experimento','Gasta 8 de energia, ganha 3 peças.',()=>{dn('en',8);S.parts+=3;return 'Dados enviados. Peças ganhas.'}],['Adiar','Sem custo, sem ganho.',()=>'A Terra entendeu.']),
+ E('Falha térmica','O sistema de refrigeração dos trajes oscila e o calor sobe nos módulos.',['Ajustar o resfriamento','Gasta 6 de energia.',()=>{dn('en',6);return 'Temperatura estabilizada.'}],['Aguentar o calor','Sem custo, mas a saúde cai 6 e os equipamentos 10%.',()=>{S.h-=6;dn('cond',10);return 'A tripulação suou, e as máquinas também.'}]),
+ E('Reciclagem otimizada','Um ajuste no filtro de água pode render um ganho extra, se você investir tempo.',['Otimizar o filtro','Gasta 1 peça, ganha 15 de água.',()=>{dn('parts',1);S.wa=Math.min(100,S.wa+15);return 'O filtro rende mais. Água extra!'}],['Deixar como está','Sem custo, sem ganho.',()=>'Tudo segue como antes.'])
+];
+function choose(i){
+ const r=S.ev.o[i][2]();S.log.unshift('<p class="alert">'+S.ev.t+': '+r+'</p>');S.ev=null;S.evk=null;S.h=clamp(S.h,0,100);beep(500,80);
+ if(S.h<=0)return finish(false,'A radiação foi demais para a tripulação.');
+ S.hist[S.hist.length-1]=vals();render();
+}
+function finish(win,why){
+ const sc=score(win),key=S.site+'-'+S.D,rec=sc>(best[key]||0);
+ if(rec){best[key]=sc;store.set('best',best)}
+ S.over={win,why,sc,rec};store.del('save');beep(win?880:150,400);render();
+}
+
+/* ---------- Pilotagem ---------- */
+const effPos=()=>{const h=prefs.profile==='hosas';return{x:clamp(C.jx+(h?C.lx*.3:0),-1,1),y:clamp(C.jy,-1,1)}};
+function flightScore(){
+ const m=FLIGHT_MISSIONS[S.fl.i],g=goal();
+ const ep=effPos(),pos=Math.hypot(ep.x-g.x,ep.y-g.y)/1.5,throttle=(Math.abs(C.th[0]-g.th)+Math.abs(C.th[1]-g.th))/2,balance=Math.abs(C.th[0]-C.th[1]),yaw=Math.abs(C.yaw)/30;
+ let score=100-(pos*48+throttle*35+balance*22+yaw*18);
+ for(const o of m.obstacles){const d=Math.hypot(ep.x-o.x,ep.y-o.y);if(d<o.r)score-=Math.round((o.r-d)/o.r*32)}
+ if(S.sw&&S.sw.hold)score=Math.min(score,89);
+ return Math.round(clamp(score,0,100));
+}
+const unlockedMission=i=>i===0||S.fl.res.slice(0,i).every(v=>v!==null&&v>=75);
+function selectFlightMission(i){
+ if(!unlockedMission(i)){say('Conclua a missão anterior com pelo menos 75 pontos para liberar esta.');return}
+ S.fl.i=i;resetControls();render();
+}
+function tryDock(){
+ const sc=flightScore(),i=S.fl.i,old=S.fl.res[i];C.attempts++;C.lastScore=sc;
+ if(old===null||sc>old){S.fl.res[i]=sc;S.fl.pts=S.fl.res.reduce((a,v)=>a+(v||0),0)}
+ let extra='';buzz(sc>=75?[60,40,60]:[140]);
+ if(sc>=75&&!S.fl.rew[i]){const g=sc>=90?2:1;S.fl.rew[i]=1;S.parts+=g;extra=` Bônus: +${g} peça${g>1?'s':''} para a oficina!`;S.log.unshift(`<p class="fact">Pilotagem: missão "${FLIGHT_MISSIONS[i].name}" concluída com ${sc} pontos. +${g} peça(s).</p>`)}
+ if(sc>=75)say(`Missão concluída! ${sc} pontos. ${sc>=90?'Medalha de ouro!':'Boa pilotagem!'}${extra}`);
+ else say(`Você fez ${sc} pontos. Precisa de 75 para concluir; ajuste os controles e tente novamente.`);
+ render();
+}
+
+/* ---------- Visões (SVG e HTML) ---------- */
+function schem(p){
+ const m=S.m,ok='#4fe08a',wr='#ffb020',bd='#ff5a4d',off='#6b7a92',ec=S.en/cap(),run=o=>!S.on[o]?off:p.fr>=1?ok:bd,
+ Lc=p.L>.5?ok:p.L>.15?wr:bd,bt=ec>.4?ok:ec>.15?wr:bd,
+ N=(x,y,w,t,n,c)=>`<rect x="${x}" y="${y}" width="${w}" height="46" rx="6" fill="#0f1a2a" stroke="${c}" stroke-width="2"/><circle cx="${x+w-12}" cy="${y+12}" r="5" fill="${c}"/><text x="${x+10}" y="${y+20}" fill="#dfe8f5" font-size="12" font-weight="600">${t}</text><text x="${x+10}" y="${y+38}" fill="#8fa3c0" font-size="12">×${n}</text>`,
+ ln=(x1,y1,x2,y2,c)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="3" stroke-dasharray="6 6" class="flow"/>`;
+ return `<svg class="scr" viewBox="0 0 600 225" role="img" aria-label="Diagrama da base: geração ${p.prod.toFixed(0)}, consumo ${p.use}"><defs><pattern id="gr" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#12203a"/></pattern></defs><rect width="600" height="225" fill="url(#gr)"/>
+ ${ln(130,45,230,100,Lc)}${ln(130,180,230,120,bt)}${ln(470,45,370,100,run('oxy'))}${ln(470,180,370,120,run('farm'))}${ln(300,135,300,165,wr)}${ln(300,85,300,68,run('rec'))}
+ <rect x="230" y="85" width="140" height="50" rx="8" fill="#13253f" stroke="#4fd6ff" stroke-width="2"/><text x="300" y="107" text-anchor="middle" fill="#dfe8f5" font-size="14" font-weight="600">Módulo de comando</text><text x="300" y="124" text-anchor="middle" fill="#4fd6ff" font-size="12">${NC()} astronautas</text>
+ ${N(20,20,110,'Painéis solares',m.solar,Lc)}${N(20,157,110,'Baterias',m.batt,bt)}${N(470,20,110,'Geradores de O₂',m.oxy,run('oxy'))}${N(470,157,110,'Estufas',m.farm,run('farm'))}${N(245,168,110,'Blindagem (nível)',m.shield,ok)}${N(245,22,110,'Reciclador de água',m.rec,run('rec'))}</svg>`;
+}
+function spark(){
+ const W=300,H=90,cs=['#4fd6ff','#6a8cff','#4fe08a','#ffb020','#ff86a8'],n=Math.max(MAXD,S.hist.length-1);
+ return `<svg class="scr" viewBox="0 0 ${W} ${H}" role="img" aria-label="Histórico dos medidores ao longo dos dias"><path d="M0 22H300M0 45H300M0 67H300" stroke="#12203a"/>${cs.map((c,k)=>`<polyline fill="none" stroke="${c}" stroke-width="2" points="${S.hist.map((h,i)=>(i/n*W).toFixed(1)+','+(H-clamp(h[k],0,100)/100*H).toFixed(1)).join(' ')}"/>`).join('')}</svg><div class="lg"><span style="color:#4fd6ff">● O₂</span><span style="color:#6a8cff">● Água</span><span style="color:#4fe08a">● Comida</span><span style="color:#ffb020">● Energia</span><span style="color:#ff86a8">● Saúde</span></div>`;
+}
+function dial(v,max,label,col,note){
+ const f=clamp(v/max,0,1),pt=(g,r)=>{const a=(135+270*g)*Math.PI/180;return[60+r*Math.cos(a),60+r*Math.sin(a)]},
+ arc=(a,b,c)=>{const p=pt(a,40),q=pt(b,40);return `<path d="M${p[0]} ${p[1]}A40 40 0 ${(b-a)*270>180?1:0} 1 ${q[0]} ${q[1]}" stroke="${c}" stroke-width="6" fill="none"/>`},
+ tk=Array.from({length:11},(_,i)=>{const a=pt(i/10,45),b=pt(i/10,50);return `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#9fb0c8" stroke-width="1.5"/>`}).join(''),n=pt(f,36);
+ return `<div class="dl"><svg viewBox="0 0 120 120" role="img" aria-label="${label}: ${Math.round(v)} de ${max}"><circle cx="60" cy="60" r="57" fill="#9aa6b6" stroke="#1b2230" stroke-width="3"/><circle cx="60" cy="60" r="52" fill="#0c1320"/>${tk}${arc(0,.25,'#ff5a4d')}${arc(.25,.45,'#ffb020')}${arc(.45,1,'#4fe08a')}<line x1="60" y1="60" x2="${n[0]}" y2="${n[1]}" stroke="#ff7a3c" stroke-width="3" stroke-linecap="round"/><circle cx="60" cy="60" r="6" fill="#c9d2de" stroke="#1b2230"/><text x="60" y="97" text-anchor="middle" fill="${col}" font-size="15" font-family="Rajdhani" font-weight="700">${Math.round(v)}</text></svg><b>${label}</b><small>${note}</small></div>`;
+}
+function viewWindow(p){
+ const m=S.m,moon=S.site==='lua',t=(Math.min(S.d,MAXD)-1)/MAXD,x=90+t*620,y=70-Math.sin(t*Math.PI)*30+t*20,sc=.4+t*1.1,
+ st=Array.from({length:40},(_,i)=>`<circle cx="${i*131%900}" cy="${i*47%130}" r="${i%5?1:1.8}" fill="#fff" opacity="${moon?.9:.3}"/>`).join(''),
+ sol=Array.from({length:m.solar},(_,i)=>`<g transform="translate(${40+i*40},180)"><path d="M0 14L8 0H36L30 14Z" fill="${p.L>.5?'#2e7bd6':'#233a63'}" stroke="#cfe0ff"/><path d="M18 14V24" stroke="#ccc"/></g>`).join(''),
+ dm=Array.from({length:m.oxy+m.rec+m.farm},(_,i)=>`<path d="M${400+i*40} 216a18 24 0 0 1 36 0Z" fill="${i<m.oxy?'#5ad1ff':i<m.oxy+m.rec?'#8fa8ff':'#9be564'}" stroke="#fff" stroke-opacity=".5"/>`).join('');
+ return `<div class="win"><svg viewBox="0 0 900 240" role="img" aria-label="Vista da janela da base"><defs><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${moon?'#02030a':'#1a0e12'}"/><stop offset="1" stop-color="${moon?'#0c1a3a':'#9a4a2c'}"/></linearGradient></defs><rect width="900" height="240" fill="url(#sk)"/>${st}<circle cx="730" cy="64" r="${moon?42:6}" fill="#3a86e8"/>${moon?'<path d="M705 50q14-8 24 4t-6 16q-14 4-18-20z" fill="#5cc97a" opacity=".85"/>':'<ellipse cx="640" cy="80" rx="22" ry="15" fill="#8a7f78"/>'}<circle cx="130" cy="90" r="20" fill="#d68a5a"/><ellipse cx="130" cy="90" rx="36" ry="7" fill="none" stroke="#e8c9a0" stroke-width="3" transform="rotate(-18 130 90)"/>
+ <path d="M0 200Q150 168 300 190T620 184T900 196V240H0Z" fill="${moon?'#8b92a0':'#b4573a'}"/>${sol}${dm}
+ <g transform="translate(${x},${y}) scale(${sc})"><path d="M-30 -8L26 0L-30 8L-24 0Z" fill="#e6edf7" stroke="#8fa3c0"/><path d="M-30 -4L-52 0L-30 4Z" fill="#ffb020"/></g>
+ <path d="M300 0L250 240M600 0L650 240" stroke="#131a26" stroke-width="16"/><rect width="900" height="240" fill="none" stroke="#131a26" stroke-width="20"/><path d="M0 0H430L330 240H0Z" fill="#fff" opacity=".03"/>
+ <path d="M0 240V120Q0 100 22 100H70Q92 100 92 122V240Z" fill="#2a64c8"/><path d="M14 112H78V130H14Z" fill="#4a86ec" opacity=".6"/><g transform="translate(900 0) scale(-1 1)"><path d="M0 240V120Q0 100 22 100H70Q92 100 92 122V240Z" fill="#2a64c8"/><path d="M14 112H78V130H14Z" fill="#4a86ec" opacity=".6"/></g><path d="M110 240L150 218H750L790 240Z" fill="#1b2230" stroke="#4a5568"/><rect x="300" y="223" width="80" height="12" rx="2" fill="#0b2a2e" stroke="#5cf2ff"/><rect x="520" y="223" width="80" height="12" rx="2" fill="#0b2a2e" stroke="#6dff9c"/><circle cx="450" cy="229" r="8" fill="#0b2a2e" stroke="#ffb020"/><path d="M0 0H900V18H0Z" fill="#131a26"/><circle cx="400" cy="9" r="3" fill="#6dff9c"/><circle cx="450" cy="9" r="3" fill="#ffb020"/><circle cx="500" cy="9" r="3" fill="#ff5a4d"/><text x="40" y="44" fill="#5cf2ff" font-size="16" font-family="Rajdhani" font-weight="700">Nave de reabastecimento: chega em ${Math.max(0,MAXD-S.d+1)} dias</text></svg></div>`;
+}
+function bank(){return `<div class="bank" role="img" aria-label="Dia ${Math.min(S.d,MAXD)} de ${MAXD}">${Array.from({length:MAXD},(_,i)=>`<i class="${i<S.d-1?'on':''}"></i>`).join('')}<span class="dm">Dias da missão</span></div>`}
+function radar(){const t=(Math.min(S.d,MAXD)-1)/MAXD,r=70*(1-t)+8,a=-.9;return `<svg class="scr sq" viewBox="0 0 160 160" role="img" aria-label="Radar: nave de reabastecimento a ${Math.max(0,MAXD-S.d+1)} dias"><g stroke="#1f6a5a" fill="none"><circle cx="80" cy="80" r="70"/><circle cx="80" cy="80" r="46"/><circle cx="80" cy="80" r="23"/><path d="M80 10V150M10 80H150"/></g><g class="sweep"><path d="M80 80V10A70 70 0 0 1 130 30Z" fill="#6dff9c" opacity=".25"/></g><circle cx="${80+r*Math.cos(a)}" cy="${80+r*Math.sin(a)}" r="4" fill="#ffb020"/><circle cx="80" cy="80" r="3" fill="#4fd6ff"/></svg>`}
+function sysInfo(n,p){
+ const v={'O₂':S.o2,'Água':S.wa,'Comida':S.food,'Saúde':S.h,'Equip.':S.cond},u={'Ar':'oxy','Reciclo':'rec','Estufa':'farm'};
+ if(n in v)return `${n}: ${Math.round(v[n])} de 100.`;if(n==='Energia')return `Energia: ${Math.round(S.en)} de ${cap()}.`;if(n==='Luz')return `Luz solar: ${Math.round(p.L*100)}% do máximo.`;
+ if(n in u)return `${n}: ${S.on[u[n]]?'ligado':'desligado'}, ${S.m[u[n]]} unidade(s).`;return `${n}: ${n==='Bateria'?S.m.batt:S.m.shield} módulo(s) instalado(s).`}
+function matrix(p){
+ const g='#4fe08a',y='#ffb020',r='#ff5a4d',o='#8a97ab',c=(v,hi,lo)=>v>=hi?g:v>=lo?y:r,sy=k=>S.on[k]?(p.fr>=1?g:r):o,
+ cells=[c(S.o2,45,25),c(S.wa,45,25),c(S.food,45,25),c(S.en/cap()*100,40,20),c(S.h,60,30),c(S.cond,60,40),p.L>.5?g:p.L>.15?y:r,sy('oxy'),sy('rec'),sy('farm'),c(S.m.shield*25,75,50),c(S.m.batt*20,60,40)],
+ nm=['O₂','Água','Comida','Energia','Saúde','Equip.','Luz','Ar','Reciclo','Estufa','Blindag.','Bateria'],
+ gl=k=>k===g?'●':k===y?'▲':k===r?'✕':'○';
+ return `<div class="mx" role="group" aria-label="Painel de status dos sistemas">${cells.map((k,i)=>`<i class="ck-clk" role="button" tabindex="0" style="background:${k}" data-say="${sysInfo(nm[i]==='Blindag.'?'Blindagem':nm[i],p)}">${gl(k)} ${nm[i]}</i>`).join('')}</div>`;
+}
+function sliders(p){
+ const v=[['O₂',S.o2,'#5ad1ff'],['Água',S.wa,'#8fa8ff'],['Comida',S.food,'#9be564'],['Energia',S.en/cap()*100,'#ffd447']],
+ kn=(l,f)=>`<div class="kn"><svg viewBox="0 0 60 60" role="img" aria-label="${l}"><circle cx="30" cy="30" r="26" fill="#1b2230" stroke="#c9d2de" stroke-width="3"/><g transform="rotate(${-135+270*f} 30 30)"><path d="M30 8V26" stroke="#ff7a3c" stroke-width="4" stroke-linecap="round"/></g></svg><b>${l}</b></div>`;
+ return `<h3 class="sub">Níveis</h3><div class="sls">${v.map(x=>`<div class="sl" role="img" aria-label="${x[0]}: ${Math.round(x[1])}"><div class="tr"><i style="bottom:${clamp(x[1],0,100)*.78}%;background:${x[2]}"></i></div><b>${x[0]}</b></div>`).join('')}</div><div class="kns">${kn('Radiação',Math.min(1,p.rad/4))}${kn('Luz solar',p.L)}</div>`;
+}
+function dw(v,max,l,c,n){return `<div class="ck-clk" role="button" tabindex="0" data-say="${l}: ${Math.round(v)} de ${max}. ${n}">${dial(v,max,l,c,n)}</div>`}
+
+/* Atitude / manche / aceleração / leme */
+function attv(){const t=(Math.min(S.d,MAXD)-1)/MAXD;return{roll:Math.round(Math.sin(S.d*1.7)*14+C.jx*30),pit:Math.round((.5-t)*24+C.jy*20),yaw:Math.round(C.yaw)}}
+const attTxt=a=>`Rolagem ${a.roll}° · Arfagem ${a.pit}° · Guinada ${a.yaw}°`;
+function att(){
+ if(!S)return;const a=attv(),g=document.getElementById('fd-g'),s=document.getElementById('joy-g'),r=document.getElementById('att');
+ if(g)g.setAttribute('transform',`rotate(${a.roll} 60 60) translate(0 ${a.pit})`);
+ if(s)s.setAttribute('transform',`rotate(${Math.round(C.jx*28)} 60 102) translate(0 ${Math.round(C.jy*8)})`);
+ if(r)r.textContent=tr(attTxt(a));rudderUI();lstickUI();flightTelemetryUI();
+}
+function fdai(){const a=attv();return `<svg class="ck-svg" viewBox="0 0 120 120" role="img" aria-label="Indicador de atitude (FDAI)"><defs><clipPath id="fc"><circle cx="60" cy="60" r="50"/></clipPath></defs><circle cx="60" cy="60" r="57" fill="#9aa6b6" stroke="#1b2230" stroke-width="3"/><g clip-path="url(#fc)"><g id="fd-g" transform="rotate(${a.roll} 60 60) translate(0 ${a.pit})"><rect x="-40" y="-60" width="200" height="120" fill="#2a64c8"/><rect x="-40" y="60" width="200" height="120" fill="#8a5a32"/><path d="M-40 60H160M45 48H75M50 72H70" stroke="#fff" stroke-width="2"/></g></g><path d="M28 60H50M70 60H92" stroke="#ffb020" stroke-width="3"/><circle cx="60" cy="60" r="3" fill="#ffb020"/></svg><span class="dm" id="att">${attTxt(a)}</span>`}
+function joy(){return `<svg id="joy" data-ctl="joy" class="ck-svg" viewBox="0 0 120 120" tabindex="0" role="group" aria-label="Manche de controle: arraste ou use as setas"><ellipse cx="60" cy="106" rx="38" ry="10" fill="#0c1119" stroke="#4a5568"/><g id="joy-g" transform="rotate(${Math.round(C.jx*28)} 60 102) translate(0 ${Math.round(C.jy*8)})"><rect x="52" y="40" width="16" height="64" rx="7" fill="#2b3a52" stroke="#9fb0c8"/><rect x="42" y="14" width="36" height="32" rx="12" fill="#1b2230" stroke="#cfe0ff" stroke-width="2"/><circle cx="52" cy="26" r="4" fill="#ff5a4d"/><circle cx="68" cy="26" r="4" fill="#4fe08a"/></g></svg>`}
+function thr(){return `<div class="sls">${[0,1].map(i=>`<div class="sl"><div class="tr ck-lev" data-ctl="th${i}" role="slider" tabindex="0" aria-label="Alavanca de aceleração ${i+1}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(C.th[i]*100)}"><i style="bottom:${Math.round(C.th[i]*78)}%;background:${i?'#ffb43c':'#6dff9c'}"></i><u class="mk" title="Alvo da missão" style="bottom:calc(${Math.round(goal().th*78)}% + 5px)"></u></div><b id="thv${i}">M${i+1} ${Math.round(C.th[i]*100)}%</b></div>`).join('')}</div>`}
+function rudderIndicator(){
+ const angle=Math.round(C.yaw),direction=angle<0?'GUINADA À ESQUERDA':angle>0?'GUINADA À DIREITA':'LEME CENTRALIZADO';
+ return `<div class="ck-rudder"><div class="ck-rudder-head"><span>ÂNGULO DO LEME</span><span class="ck-rudder-readout" id="rudder-angle">${angle>0?'+':''}${angle}°</span></div>
+ <svg viewBox="0 0 220 116" role="img" aria-label="Escala do leme de menos 30 a mais 30 graus"><path d="M24 91 A86 86 0 0 1 196 91" fill="none" stroke="#314a66" stroke-width="12" stroke-linecap="round"/><path d="M24 91 A86 86 0 0 1 67 19" fill="none" stroke="#63ddff" stroke-width="4" stroke-linecap="round" opacity=".85"/><path d="M153 19 A86 86 0 0 1 196 91" fill="none" stroke="#ffb45c" stroke-width="4" stroke-linecap="round" opacity=".85"/><g stroke="#9fb0c8" stroke-width="2"><path d="M24 91l10 -2M67 19l7 8M110 5v13M153 19l-7 8M196 91l-10 -2"/></g><g fill="#8fa6c2" font-size="10" text-anchor="middle"><text x="24" y="108">-30°</text><text x="110" y="108">0°</text><text x="196" y="108">+30°</text></g><g id="rudder-needle" transform="rotate(${angle*1.5} 110 91)"><path d="M110 91L110 20" stroke="#f4f8ff" stroke-width="4" stroke-linecap="round"/><path d="M110 18l-6 12h12z" fill="#63ddff"/></g><circle cx="110" cy="91" r="8" fill="#ffc45c" stroke="#081321" stroke-width="3"/></svg>
+ <div class="ck-rudder-state" id="rudder-state" aria-live="polite">${direction}</div><div class="ck-rudder-legend"><span>ESQUERDA</span><span>CENTRO</span><span>DIREITA</span></div></div>`;
+}
+function rudderUI(){
+ const a=Math.round(C.yaw),n=document.getElementById('rudder-needle'),r=document.getElementById('rudder-angle'),s=document.getElementById('rudder-state');
+ if(n)n.setAttribute('transform',`rotate(${a*1.5} 110 91)`);if(r)r.textContent=`${a>0?'+':''}${a}°`;
+ if(s)s.textContent=a<0?'GUINADA À ESQUERDA':a>0?'GUINADA À DIREITA':'LEME CENTRALIZADO';
+}
+function ped(){return `<div class="ck-peds"><button class="ck-ped${C.yaw<0?' down':''}" data-ctl="pl" aria-label="Pedal esquerdo: guinada à esquerda">◀ Esq.</button><button class="ck-ped${C.yaw>0?' down':''}" data-ctl="pr" aria-label="Pedal direito: guinada à direita">Dir. ▶</button></div>`}
+function pedUI(){document.querySelectorAll('.ck-ped').forEach(b=>{const on=b.dataset.ctl==='pl'?C.yaw<0:C.yaw>0;b.classList.toggle('down',on);b.setAttribute('aria-pressed',String(on))})}
+function setPed(k,on){if(!on||(k!=='pl'&&k!=='pr'))return;C.yaw=clamp(C.yaw+(k==='pl'?-5:5),-30,30);C.pl=C.yaw<0?1:0;C.pr=C.yaw>0?1:0;pedUI();att()}
+function levUI(i){
+ const el=document.querySelector(`[data-ctl=th${i}]`);if(!el)return;const v=Math.round(C.th[i]*100);
+ el.firstElementChild.style.bottom=Math.round(C.th[i]*78)+'%';el.setAttribute('aria-valuenow',v);
+ const b=document.getElementById('thv'+i);if(b)b.textContent=`M${i+1} ${v}%`;flightTelemetryUI();
+}
+function missionRadar(m){
+ const px=x=>60+(x+1)*42,py=y=>60+(y+1)*42;
+ const obs=m.obstacles.map(o=>`<circle cx="${px(o.x)}" cy="${py(o.y)}" r="${o.r*42}" fill="#ff777d" fill-opacity=".25" stroke="#ff777d" stroke-width="2"/><text x="${px(o.x)}" y="${py(o.y)+3}" text-anchor="middle" fill="#ffdce0" font-size="8">!</text>`).join('');
+ return `<svg viewBox="0 0 120 120" role="img" aria-label="Radar da missão: marcador azul é o alvo, área vermelha é obstáculo"><rect x="5" y="5" width="110" height="110" rx="8" fill="#081321" stroke="#38536d"/><path d="M60 8V112M8 60H112M30 30L90 90M90 30L30 90" stroke="#233a55" stroke-width="1"/>${obs}<circle cx="${px(m.goal.x)}" cy="${py(m.goal.y)}" r="5" fill="#63ddff" stroke="#e5fbff" stroke-width="2"/><circle class="fcraft" cx="${px(effPos().x)}" cy="${py(effPos().y)}" r="4" fill="#ffc45c" stroke="#fff" stroke-width="1.5"/><text x="60" y="10" text-anchor="middle" fill="#9fb0c8" font-size="6">RADAR DE ATITUDE</text></svg>`;
+}
+function flightTelemetryUI(){
+ if(!S||!document.getElementById('flight-distance'))return;
+ const m=FLIGHT_MISSIONS[S.fl.i],g=goal(),ep=effPos(),distance=Math.round(Math.hypot(ep.x-g.x,ep.y-g.y)*100),score=flightScore();
+ const od=Math.min(...m.obstacles.map(o=>Math.hypot(ep.x-o.x,ep.y-o.y)-o.r)),safe=od>0;
+ const put=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+ put('flight-distance',distance+'%');put('flight-preview-score',score+'/100');put('flight-obstacle',safe?'LIVRE':'ATENÇÃO');
+ put('flight-clearance',safe?'Margem '+Math.round(od*100)+'%':'Dentro da zona');
+ put('flight-motors',Math.round(C.th[0]*100)+'% / '+Math.round(C.th[1]*100)+'%');put('flight-yaw',(C.yaw>0?'+':'')+Math.round(C.yaw)+'°');
+ const ob=document.getElementById('flight-obstacle-stat');if(ob)ob.classList.toggle('warn',!safe);
+ const mt=document.getElementById('flight-preview-meter');if(mt)mt.style.width=score+'%';
+ document.querySelectorAll('.fcraft').forEach(cr=>{cr.setAttribute('cx',60+(ep.x+1)*42);cr.setAttribute('cy',60+(ep.y+1)*42)});
+ const mm=document.getElementById('flight-motors-line');if(mm)mm.textContent=`Motores: ${Math.round(C.th[0]*100)}% / ${Math.round(C.th[1]*100)}% · Guinada: ${Math.round(C.yaw)}°`;
+}
+function flightUI(){
+ const sc=C.lastScore,g=goal(),m=FLIGHT_MISSIONS[S.fl.i],res=S.fl.res,best=res[S.fl.i];
+ const tabs=FLIGHT_MISSIONS.map((x,i)=>{const u=unlockedMission(i);return `<button type="button" class="ch" aria-pressed="${i===S.fl.i}" ${u?'':'disabled'} data-act="fmission" data-arg="${i}" data-fk="fm${i}" title="${u?'Selecionar missão':'Conclua a missão anterior com 75 pontos'}">${i+1}. ${x.name}${u?'':' 🔒'}</button>`}).join('');
+ const verdict=sc===null?'Ajuste os controles e execute a manobra.':`Resultado: ${sc}/100 — ${sc>=90?'Excelente pilotagem':sc>=75?'Missão concluída':sc>=50?'Quase lá, tente novamente':'Manobra precisa de ajustes'}`;
+ return `<div class="ck-flight"><div class="ck-flight-head"><b>MISSÕES DE PILOTAGEM</b><span class="dm">Pontos acumulados: ${S.fl.pts}</span></div><div class="ck-mission-tabs">${tabs}</div>
+ <div class="ck-mission-grid"><div>${missionRadar(m)}</div><div><b class="ck-mission-name">${m.name}</b><span class="ck-mission-tag">${m.tag}</span><p class="dm"><b>Objetivo:</b> ${m.objective}</p><p class="dm"><b>Obstáculo:</b> ${m.obstacles.map(o=>o.name).join(', ')}</p><p class="dm">${m.hint}</p><div class="dm">Alvo: X ${Math.round(g.x*100)}% · Y ${Math.round(g.y*100)}% · motores ${Math.round(g.th*100)}%</div><div class="dm">Melhor resultado: ${best===null?'ainda não concluída':best+' pontos'}${S.fl.rew[S.fl.i]?' · bônus recebido':' · 75+ rende peças extras'}</div></div></div>
+ <div class="ck-flight-telemetry"><div class="ck-flight-stat"><small>DISTÂNCIA DO ALVO</small><b id="flight-distance">--</b></div><div class="ck-flight-stat"><small>PONTUAÇÃO ESTIMADA</small><b id="flight-preview-score">--</b></div><div class="ck-flight-stat" id="flight-obstacle-stat"><small>SEGURANÇA DO TRAJETO</small><b id="flight-obstacle">--</b><small id="flight-clearance">--</small></div><div class="ck-flight-stat"><small>GUINADA / MOTORES</small><b id="flight-yaw">0°</b><small id="flight-motors">50% / 50%</small></div></div>
+ <div class="ck-flight-meter" role="img" aria-label="Pontuação estimada"><i id="flight-preview-meter"></i></div>
+ <div class="ck-flight-actions"><button type="button" class="ch" data-act="reset-flight">Reiniciar controles</button><button type="button" class="ch" data-act="rudder-center">Centralizar só o leme</button></div>
+ <div class="ck-control-guide"><b>Controles:</b> arraste o manche e as alavancas; setas movem o manche quando focado; Q/E ajustam o leme; C centraliza tudo.</div>
+ <div class="ck-flight-head" style="margin-top:8px"><span class="dm" aria-live="polite">${verdict}</span><button type="button" class="act" data-act="dock" data-fk="dock">Executar manobra</button></div><div class="dm">${res.filter(v=>v!==null&&v>=75).length}/4 missões concluídas · Medalha de ouro: 90+ pontos</div></div>`;
+}
+
+/* ---------- Visão principal ---------- */
+function gameView(){
+ const p=project(),hc=S.h>60?'var(--gr)':S.h>30?'var(--am)':'var(--rd)',mx=Math.max(p.use,p.prod,1),
+ seg=(v,c)=>Array.from({length:12},(_,i)=>`<i style="background:${i<Math.round(v*12)?c:'#1b2230'}"></i>`).join(''),
+ alarms=[['O₂ baixo',S.o2<30,1],['Água baixa',S.wa<25,1],['Comida baixa',S.food<25,1],['Energia baixa',S.en/cap()<.25,1],['Radiação alta',p.rad>2,0],['Pouca luz',p.L<.5,0],['Equip. desgastados',S.cond<50,0],['Saúde crítica',S.h<40,1]],
+ nr=alarms.filter(a=>a[1]&&a[2]).length,
+ an=alarms.map(a=>{const c=a[1]?(a[2]?'r':'a'):'';return `<button class="an ${c}" data-say="${a[0]}: ${a[1]?'alarme ativo, aja agora.':'sem problema no momento.'}">${a[0]}</button>`}).join(''),
+ suits=CREW.slice(0,NC()).map(c=>{const a=S.o2>=25,b=S.en/cap()>=.2;return `<div class="ck-suit ck-clk" role="button" tabindex="0" data-say="Traje de ${c}: O₂ ${a?'conectado':'BAIXO'}, refrigeração ${b?'ok':'BAIXA'}."><i class="av" style="background:${hc}">${c[0]}</i><span>${c}</span><small class="dm">O₂</small><i class="led ${a?'on':'bad'}" role="img" aria-label="O₂ ${a?'ok':'baixo'}"></i><small class="dm">Frio</small><i class="led ${b?'on':'bad'}" role="img" aria-label="Refrigeração ${b?'ok':'baixa'}"></i></div>`}).join('');
+ let br='';
+ for(const[k,nm,u]of[['oxy','Geradores de O₂',7],['rec','Recicladores de água',4],['farm','Estufas',6]])
+  br+=`<div class="row"><i class="led ${S.on[k]?(p.fr>=1?'on':'bad'):''}"></i><span><b>${nm}</b><small class="dm">Gastam ${Math.round(S.m[k]*u*(k==='farm'?CR().en:1))} de energia</small></span><button class="sw" aria-pressed="${S.on[k]}" aria-label="${nm}" data-act="toggle" data-arg="${k}" data-fk="sw-${k}"></button></div>`;
+ for(const[k,nm]of[['solar','Painéis solares'],['batt','Baterias'],['shield','Blindagem']])
+  br+=`<div class="row ck-clk" role="button" tabindex="0" data-say="${nm}: ${S.m[k]} módulo(s) instalado(s)."><i class="led ${S.m[k]?'on':''}"></i><span><b>${nm} ×${S.m[k]}</b></span></div>`;
+ let keys='';
+ for(const k in BASE){const m4=k==='shield'&&S.m.shield>=4;keys+=`<button class="key" style="--k:${KC[k]}" ${S.parts<cost(k)||m4?'disabled':''} data-act="build" data-arg="${k}" data-fk="b-${k}"><b>${INFO[k][0]} ×${S.m[k]}</b><small>${INFO[k][1]}</small><em>${m4?'Máximo':cost(k)+' peças'}</em></button>`}
+ keys+=`<button class="key" style="--k:${KC.maint}" ${S.parts<2?'disabled':''} data-act="maint" data-fk="b-maint"><b>Manutenção</b><small>Recupera 35% dos equipamentos.</small><em>2 peças</em></button>`;
+ const P=(t,b,c='')=>`<section class="pn ${c}"><h3>${t}</h3>${b}</section>`;
+ const dl=dw(S.o2,100,'Oxigênio','#5ad1ff','Hoje: '+sg(p.o2d))+dw(S.wa,100,'Água','#8fa8ff','Hoje: '+sg(p.wd))+dw(S.food,100,'Comida','#9be564','Hoje: '+sg(p.fd))+dw(S.en,cap(),'Energia','#ffd447','Gera '+p.prod.toFixed(0)+', gasta '+p.use)+dw(S.h,100,'Saúde','#ff86a8',p.msv.toFixed(2)+' mSv/dia')+dw(S.cond,100,'Equipamentos','#dfe8f5','Eficiência '+Math.round(p.e*100)+'%');
+ const radio=`<div class="ck-rf"><span><i class="led on"></i> RX</span><button class="ch" data-act="tx" data-fk="tx">🎙 Transmitir relatório</button><span class="dm">Canal: ${S.edu}</span></div><div class="scr log" role="log" aria-live="polite">${S.log.slice(0,12).join('')}</div>`;
+ const edu=`<div class="chs">${Object.keys(EDU).map(k=>`<button class="ch" aria-pressed="${S.edu===k}" data-act="edu" data-arg="${k}" data-fk="edu-${k}">${k}</button>`).join('')}</div><div class="scr edu"><p>${EDU[S.edu]}</p></div>`;
+ const head=`<div class="pn strip"><div class="bar"><h2>${S.site==='lua'?'Base Lunar':'Base Marciana'} · ${DN[S.D]} · Dia ${Math.min(S.d,MAXD)} de ${MAXD}</h2><div class="crew"><span class="lcd">Autonomia: ${p.aut===null?'estável':p.aut+' dias'}</span>${CREW.slice(0,NC()).map(c=>`<button class="av" title="${c}" aria-label="${c}" data-say="${c}: ${S.h>60?'em boa forma':S.h>30?'cansado, atenção à saúde':'em estado crítico!'} (saúde da equipe ${Math.round(S.h)})." style="background:${hc}">${c[0]}</button>`).join('')}<button class="ch" data-act="tut-open" data-fk="tut">Como jogar</button><button class="ch" aria-pressed="${prefs.sound}" data-act="mute" data-fk="mute">${prefs.sound?'🔊 Som':'🔇 Mudo'}</button>${langBtns()}${langBtns()}<button class="ch" data-act="menu" data-fk="menu">Salvar e sair</button></div></div><div class="anns" aria-live="polite"><span class="an ${nr?'r':''}">${nr?nr+' alarme(s) crítico(s)':'Sistemas nominais'}</span>${an}</div>${bank()}</div>`;
+ let h=head+`<div class="ck"><div class="ck-canopy ck-clk" role="button" tabindex="0" data-say="Câmera externa: nave de reabastecimento chega em ${Math.max(0,MAXD-S.d+1)} dias.">${viewWindow(p)}</div><div class="ck-deck">`
+ +P('Suporte à vida · ECLSS',`<div class="dials">${dl}</div>${sliders(p)}`,'ck-ol')
+ +P('Acoplagem · Radar',`<div class="ck-clk" role="button" tabindex="0" data-say="Radar: nave de reabastecimento a ${Math.max(0,MAXD-S.d+1)} dias.">${radar()}</div><span class="dm" style="margin-top:6px">Reabastecimento em ${Math.max(0,MAXD-S.d+1)} dias</span><h3 class="sub">Trajes espaciais</h3>${suits}`,'ck-il')
+ +P('MFD principal · '+MFDN[UI.mfd],mfdTabs()+(UI.mfd==='PWR'?`<div class="ck-clk" role="button" tabindex="0" data-say="MFD de energia: geração ${p.prod.toFixed(0)}, consumo ${p.use}.">${schem(p)}</div><div class="two"><div class="ck-clk" role="button" tabindex="0" data-say="Telemetria: histórico dos dias da missão.">${spark()}</div><div>${matrix(p)}</div></div>`:mfdOther(p)),'ck-main')
+ +P('Telemetria e sistemas',`<span class="dm">Geração solar ${p.prod.toFixed(0)}</span><div class="seg">${seg(p.prod/mx,'#6dff9c')}</div><span class="dm">Consumo ${p.use}</span><div class="seg">${seg(p.use/mx,'#ffb43c')}</div>${br}`,'ck-ir')
+ +P('Objetivos',`<div class="lcd"><b>${score(false)} pontos</b>${objs().map(o=>`<div>${o[1]?'✓':'○'} ${o[0]}</div>`).join('')}</div>`,'ck-or')
+ +`</div><div class="ck-low">`
+ +P('Aceleração e pedais',`${thr()}<div class="chs" style="justify-content:center;margin-top:6px"><button class="ch" aria-pressed="${C.link}" data-act="link" data-fk="link">🔗 Manetes ligadas</button></div><span class="dm">Arraste as alavancas (W/S move ambas). Marcador azul = alvo da missão.</span>${ped()}${rudderIndicator()}<span class="dm">Leme com retenção: cada toque ajusta 5°. Use Q/E no teclado; o pedal oposto corrige.</span>`)
+ +P('Pilotagem',`<div class="chs" role="group" aria-label="Perfil de controle"><button class="ch" aria-pressed="${prefs.profile==='hotas'}" data-act="profile" data-arg="hotas" data-fk="prof2-hotas">HOTAS</button><button class="ch" aria-pressed="${prefs.profile==='hosas'}" data-act="profile" data-arg="hosas" data-fk="prof2-hosas">HOSAS</button></div><div class="ck-hand${prefs.profile==='hosas'?' three':''}">${prefs.profile==='hosas'?`<div>${lstick()}<span class="dm">Esquerdo: lateral (X) e potência (Y)</span></div>`:''}<div>${fdai()}<span class="dm">Atitude (FDAI)</span></div><div>${joy()}<span class="dm">${prefs.profile==='hosas'?'Direito: atitude':'Manche: arraste ou use as setas'}</span></div></div><div class="dm" id="flight-motors-line">Motores: ${Math.round(C.th[0]*100)}% / ${Math.round(C.th[1]*100)}% · Guinada: ${C.yaw}°</div><button class="ch" data-act="center" style="margin-top:8px">Centralizar manche</button>${flightUI()}`,'ck-pilot')
+ +P('Oficina · teclado',`<span class="parts">${S.parts} peças</span><div class="keys">${keys}</div>`)
+ +P('Comando',`<div class="haz"><button class="bigbtn" data-act="end" data-fk="end">Encerrar<br>o dia ${S.d}</button></div><button class="ck-abort" data-act="abort" data-fk="abort">⚠ ABORTAR MISSÃO</button><span class="dm" style="margin-top:6px">Botão de emergência: encerra a missão agora.</span>`)
+ +`</div><div class="ck-rig">`+P('Caixa de botões',btnBox())+P('Periféricos · Hub USB',settingsView())+P('Hangar · guia do cockpit',guideView())+`</div><div class="ck-radio">`+P('🎧 Rádio · Controle da Missão',radio)+P('Modo educativo',edu)+`</div></div>`;
+ if(S.ev)h+=`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt"><div class="pn"><h2 id="mt"><span class="bc"></span>Alerta: ${S.ev.t}</h2><p>${S.ev.d}</p>${S.ev.o.map((o,i)=>`<button class="opt" data-act="choose" data-arg="${i}"><b>${o[0]}</b><small>${o[1]}</small></button>`).join('')}</div></div>`;
+ else if(S.over){
+  const w=S.over.win,sc=S.over.sc,st=stars(sc),bk=best[S.site+'-'+S.D]||0;
+  h+=`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt"><div class="pn"><h2 id="mt">${w?'Missão cumprida!':'Missão encerrada'}</h2><p>${w?'A nave chegou e a tripulação está a salvo.':S.over.why}</p><p class="n" style="font-size:1.4rem;margin:4px 0">Pontuação: ${sc} <span aria-label="${st} de 3 estrelas">${'★'.repeat(st)+'☆'.repeat(3-st)}</span>${S.over.rec?'<span class="rec">NOVO RECORDE</span>':''}</p><div class="dm">Recorde nesta combinação: ${bk} · Dias: ${Math.min(S.d-1,MAXD)} de ${MAXD} · Saúde ${Math.round(S.h)} · O₂ ${Math.round(S.o2)} · Água ${Math.round(S.wa)} · Comida ${Math.round(S.food)}</div><div style="margin-top:8px">${objs().map(o=>`<div>${o[1]?'✓':'○'} ${o[0]}</div>`).join('')}</div><p><b>O que engenheiros de verdade aprendem com isso:</b></p><ul><li>Energia, ar, água, comida e proteção competem pelos mesmos recursos.</li><li>Gastar com um sistema deixa menos para os outros.</li><li>Manutenção e reservas salvam a missão quando algo dá errado.</li></ul><button class="go" data-act="new">Nova missão</button></div></div>`;
+ }
+ else if(UI.abort)h+=`<div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="mt"><div class="pn"><h2 id="mt">Abortar a missão?</h2><p>Isso encerra o jogo agora, sem completar os ${MAXD} dias.</p><button class="go alt" data-act="abort-no">Continuar a missão</button><button class="opt" data-act="abort-yes"><b>Sim, abortar</b><small>A pontuação parcial será registrada.</small></button></div></div>`;
+ else if(S.tut)h+=`<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt"><div class="pn"><h2 id="mt">Como jogar</h2><ol>${TUT.map(t=>`<li>${t}</li>`).join('')}</ol><button class="go" data-act="tut-close">Entendi, começar!</button></div></div>`;
+ return h+nasaPanel()+sourcesView();
+}
+function sourcesView(){
+ return `<section class="sources"><h3>Ciência por trás da missão · fontes NASA</h3><ul><li><a href="https://science.nasa.gov/moon/weather-on-the-moon/" target="_blank" rel="noopener">Ambiente e radiação na Lua</a></li><li><a href="https://science.nasa.gov/mars/facts/" target="_blank" rel="noopener">Ambiente de Marte</a></li><li><a href="https://www.nasa.gov/hrp/hazard-space-radiation/" target="_blank" rel="noopener">Riscos da radiação espacial</a></li><li><a href="https://www.nasa.gov/solar-system/the-fact-and-fiction-of-martian-dust-storms/" target="_blank" rel="noopener">Tempestades de poeira marcianas</a></li><li><a href="https://ccmc.gsfc.nasa.gov/tools/DONKI/" target="_blank" rel="noopener">DONKI · clima espacial</a></li></ul><span class="model-note">As fontes fundamentam os fenômenos apresentados. Os valores usados nos cálculos do jogo continuam sendo simplificações didáticas.</span></section><footer>Posto Avançado · simulador educacional · progresso salvo neste navegador</footer>`;
+}
+function intro(){
+ const sv=store.get('save',null),ok=sv&&sv.S&&sv.S.v===6,keys=Object.keys(best);
+ const rec=keys.length?`<div class="factbox"><strong>RECORDES</strong><br>${keys.map(k=>{const[s,d]=k.split('-');return `${s==='lua'?'🌕 Lua':'🔴 Marte'} · ${DN[+d]}: <b>${best[k]}</b>`}).join(' &nbsp;•&nbsp; ')}</div>`:'';
+ const rs=ok?`<button class="pn site resume" data-act="resume" data-fk="resume"><h2>▶ Continuar missão</h2><p>${sv.S.site==='lua'?'Base Lunar':'Base Marciana'} · ${DN[sv.S.D]} · Dia ${Math.min(sv.S.d,MAXD)} de ${MAXD}</p></button>`:'';
+ return `<div class="intro"><span class="badge">CENTRO DE OPERAÇÕES • SIMULADOR EDUCACIONAL</span><h1>Posto Avançado</h1>
+ <p>Você é o comandante de uma base com uma tripulação de 3 a 6 astronautas. Cada decisão gasta energia, água, peças ou saúde. Sobreviva por ${MAXD} dias até a nave de reabastecimento chegar.</p>${rs}
+ <h2 class="n">Escolha a dificuldade</h2><div class="chs" role="group" aria-label="Dificuldade">${DN.map((n,i)=>`<button class="ch" aria-pressed="${D===i}" data-act="diff" data-arg="${i}" data-fk="d${i}">${n}</button>`).join('')}<button class="ch" aria-pressed="${prefs.sound}" data-act="mute" data-fk="mute">${prefs.sound?'🔊 Som':'🔇 Mudo'}</button></div>
+ <div class="levels">${DN.map((n,i)=>`<div class="level ${D===i?'active':''}"><b>${n}${D===i?' · SELECIONADO':''}</b><small>${DD[i]}</small><small>Início: ${DF[i].pt} peças · ${Math.round(80*DF[i].r)} O₂, ${Math.round(70*DF[i].r)} água, ${Math.round(60*DF[i].r)} comida.</small><small>Eventos: ${Math.round(DF[i].e*100)}% por dia · Radiação ${['reduzida','normal','elevada'][i]}.</small></div>`).join('')}</div>
+ <h2 class="n">Escolha o destino${ok?' (nova missão)':''}</h2><div class="sites"><button class="pn site" data-act="start" data-arg="lua" data-fk="s-lua"><h2>🌕 Lua</h2><p>Longos períodos sem luz solar e pouca proteção natural contra a radiação. Planeje as reservas antes da noite lunar.</p><span class="dm">Desafio: atravessar a noite lunar</span></button><button class="pn site" data-act="start" data-arg="marte" data-fk="s-marte"><h2>🔴 Marte</h2><p>Tempestades de poeira, inclusive globais, reduzem a luz dos painéis. O frio extremo ainda faz o aquecimento gastar mais energia.</p><span class="dm">Desafio: manter energia durante a poeira</span></button></div>
+ ${rec}${nasaPanel()}<div class="factbox"><strong>MISSÃO COM BASE CIENTÍFICA</strong><br>O jogo transforma desafios reais — radiação, poeira, energia e suporte à vida — em decisões simples para aprender brincando.<span class="model-note">Importante: os estoques, custos, taxas e eventos numéricos desta versão são parâmetros didáticos do jogo, não medições em tempo real nem previsões oficiais da NASA.</span></div>${sourcesView()}</div>`;
+}
+
+/* ---------- Renderização com preservação de foco ---------- */
+let modalKey='';
+const LANGS=['pt','en','es','fr'],LN={pt:'PT',en:'EN',es:'ES',fr:'FR'},I18N=`CENTRO DE OPERAÇÕES • SIMULADOR EDUCACIONAL|OPERATIONS CENTER • EDUCATIONAL SIMULATOR|CENTRO DE OPERACIONES • SIMULADOR EDUCATIVO|CENTRE D'OPÉRATIONS • SIMULATEUR ÉDUCATIF
+Posto Avançado|Forward Outpost|Puesto Avanzado|Poste Avancé
+Escolha a dificuldade|Choose difficulty|Elige la dificultad|Choisissez la difficulté
+Escolha o destino|Choose your destination|Elige el destino|Choisissez la destination
+Treinamento|Training|Entrenamiento|Entraînement
+Missão|Mission|Misión|Mission
+Sobrevivência|Survival|Supervivencia|Survie
+🔊 Som|🔊 Sound|🔊 Sonido|🔊 Son
+🔇 Mudo|🔇 Muted|🔇 Silencio|🔇 Muet
+Lua|Moon|Luna|Lune
+Marte|Mars|Marte|Mars
+RECORDES|RECORDS|RÉCORDS|RECORDS
+SELECIONADO|SELECTED|SELECCIONADO|SÉLECTIONNÉ
+Início: # peças · # O₂, # água, # comida.|Start: # parts · # O₂, # water, # food.|Inicio: # piezas · # O₂, # agua, # comida.|Départ : # pièces · # O₂, # eau, # nourriture.
+Eventos: #% por dia|Events: #% per day|Eventos: #% por día|Événements : #% par jour
+Radiação reduzida|Reduced radiation|Radiación reducida|Radiation réduite
+Radiação normal|Normal radiation|Radiación normal|Radiation normale
+Radiação elevada|High radiation|Radiación elevada|Radiation élevée
+Radiação alta|High radiation|Radiación alta|Radiation élevée
+Mais recursos e mais margem para erro.|More resources and more room for error.|Más recursos y más margen de error.|Plus de ressources et plus de marge d'erreur.
+Recursos limitados, eventos com mais impacto.|Limited resources, higher-impact events.|Recursos limitados, eventos con más impacto.|Ressources limitées, événements plus marquants.
+Poucos recursos, mais eventos e radiação forte.|Scarce resources, more events and strong radiation.|Pocos recursos, más eventos y radiación fuerte.|Peu de ressources, plus d'événements et forte radiation.
+Desafio: atravessar a noite lunar|Challenge: survive the lunar night|Desafío: atravesar la noche lunar|Défi : traverser la nuit lunaire
+Desafio: manter energia durante a poeira|Challenge: keep power during the dust|Desafío: mantener la energía durante el polvo|Défi : garder l'énergie pendant la poussière
+↻ Atualizar dados|↻ Refresh data|↻ Actualizar datos|↻ Actualiser les données
+Dados ao vivo · APIs oficiais da NASA|Live data · Official NASA APIs|Datos en vivo · APIs oficiales de la NASA|Données en direct · API officielles de la NASA
+MISSÃO COM BASE CIENTÍFICA|SCIENCE-BASED MISSION|MISIÓN CON BASE CIENTÍFICA|MISSION À BASE SCIENTIFIQUE
+Ciência por trás da missão · fontes NASA|Science behind the mission · NASA sources|La ciencia detrás de la misión · fuentes NASA|La science derrière la mission · sources NASA
+Base Lunar|Lunar Base|Base Lunar|Base lunaire
+Base Marciana|Martian Base|Base Marciana|Base martienne
+Dia # de #|Day # of #|Día # de #|Jour # sur #
+Autonomia: estável|Autonomy: stable|Autonomía: estable|Autonomie : stable
+Autonomia: # dias|Autonomy: # days|Autonomía: # días|Autonomie : # jours
+Como jogar|How to play|Cómo jugar|Comment jouer
+Salvar e sair|Save and exit|Guardar y salir|Sauvegarder et quitter
+Sistemas nominais|Systems nominal|Sistemas nominales|Systèmes nominaux
+O₂ baixo|Low O₂|O₂ bajo|O₂ bas
+Água baixa|Low water|Agua baja|Eau basse
+Comida baixa|Low food|Comida baja|Nourriture basse
+Energia baixa|Low power|Energía baja|Énergie basse
+Pouca luz|Low light|Poca luz|Peu de lumière
+Equip. desgastados|Worn equipment|Equipos desgastados|Équip. usés
+Saúde crítica|Critical health|Salud crítica|Santé critique
+Dias da missão|Mission days|Días de la misión|Jours de mission
+Nave de reabastecimento: chega em # dias|Resupply ship: arrives in # days|Nave de reabastecimiento: llega en # días|Vaisseau de ravitaillement : arrive dans # jours
+Reabastecimento em # dias|Resupply in # days|Reabastecimiento en # días|Ravitaillement dans # jours
+Suporte à vida · ECLSS|Life support · ECLSS|Soporte vital · ECLSS|Support vie · ECLSS
+Oxigênio|Oxygen|Oxígeno|Oxygène
+Água|Water|Agua|Eau
+Comida|Food|Comida|Nourriture
+Energia|Power|Energía|Énergie
+Saúde|Health|Salud|Santé
+Equipamentos|Equipment|Equipos|Équipements
+Hoje:|Today:|Hoy:|Aujourd'hui :
+Gera #, gasta #|Makes #, uses #|Genera #, gasta #|Produit #, consomme #
+Eficiência #%|Efficiency #%|Eficiencia #%|Efficacité #%
+Níveis|Levels|Niveles|Niveaux
+Radiação|Radiation|Radiación|Radiation
+Luz solar|Sunlight|Luz solar|Lumière solaire
+Acoplagem · Radar|Docking · Radar|Acoplamiento · Radar|Amarrage · Radar
+Trajes espaciais|Space suits|Trajes espaciales|Combinaisons spatiales
+Frio|Cooling|Frío|Froid
+MFD principal · Energia|Main MFD · Power|MFD principal · Energía|MFD principal · Énergie
+Navegação|Navigation|Navegación|Navigation
+Módulo de comando|Command module|Módulo de mando|Module de commandement
+# astronautas|# astronauts|# astronautas|# astronautes
+Painéis solares|Solar panels|Paneles solares|Panneaux solaires
+Baterias|Batteries|Baterías|Batteries
+Geradores de O₂|O₂ generators|Generadores de O₂|Générateurs d'O₂
+Estufas|Greenhouses|Invernaderos|Serres
+Blindagem (nível)|Shielding (level)|Blindaje (nivel)|Blindage (niveau)
+Blindagem|Shielding|Blindaje|Blindage
+Reciclador de água|Water recycler|Reciclador de agua|Recycleur d'eau
+Recicladores de água|Water recyclers|Recicladores de agua|Recycleurs d'eau
+Equip.|Equip.|Equipo|Équip.
+Luz|Light|Luz|Lumière
+Ar|Air|Aire|Air
+Reciclo|Recycl.|Reciclaje|Recycl.
+Estufa|Greenh.|Invern.|Serre
+Blindag.|Shield|Blindaje|Blind.
+Bateria|Battery|Batería|Batterie
+Telemetria e sistemas|Telemetry and systems|Telemetría y sistemas|Télémétrie et systèmes
+Geração solar|Solar generation|Generación solar|Production solaire
+Consumo|Consumption|Consumo|Consommation
+Gastam # de energia|Use # power|Gastan # de energía|Consomment # d'énergie
+Objetivos|Objectives|Objetivos|Objectifs
+# pontos|# points|# puntos|# points
+Sobreviver # dias|Survive # days|Sobrevivir # días|Survivre # jours
+Ter # ou mais estufas|Have # or more greenhouses|Tener # o más invernaderos|Avoir # serres ou plus
+Terminar com saúde acima de #|Finish with health above #|Terminar con salud por encima de #|Finir avec une santé supérieure à #
+Equipamentos acima de #%|Equipment above #%|Equipos por encima de #%|Équipements au-dessus de #%
+Concluir # missões de pilotagem|Complete # piloting missions|Completar # misiones de pilotaje|Terminer # missions de pilotage
+Aceleração e pedais|Throttle and pedals|Aceleración y pedales|Poussée et pédales
+Manetes ligadas|Throttles linked|Manetas enlazadas|Manettes liées
+Pilotagem|Piloting|Pilotaje|Pilotage
+Atitude (FDAI)|Attitude (FDAI)|Actitud (FDAI)|Attitude (FDAI)
+Rolagem|Roll|Alabeo|Roulis
+Arfagem|Pitch|Cabeceo|Tangage
+Guinada|Yaw|Guiñada|Lacet
+Centralizar manche|Center stick|Centrar palanca|Centrer le manche
+Oficina · teclado|Workshop · keypad|Taller · teclado|Atelier · clavier
+# peças|# parts|# piezas|# pièces
+Manutenção|Maintenance|Mantenimiento|Maintenance
+Recupera #% dos equipamentos.|Restores #% of equipment.|Recupera #% de los equipos.|Récupère #% des équipements.
+Comando|Command|Mando|Commande
+Encerrar|End|Terminar|Terminer
+o dia #|day #|el día #|la journée #
+⚠ ABORTAR MISSÃO|⚠ ABORT MISSION|⚠ ABORTAR MISIÓN|⚠ ANNULER LA MISSION
+Botão de emergência: encerra a missão agora.|Emergency button: ends the mission now.|Botón de emergencia: termina la misión ahora.|Bouton d'urgence : met fin à la mission maintenant.
+Geram energia só com luz.|Generate power only in light.|Generan energía solo con luz.|Produisent de l'énergie seulement avec de la lumière.
+Fazem ar; gastam muita energia.|Make air; use a lot of power.|Producen aire; gastan mucha energía.|Fabriquent de l'air ; consomment beaucoup d'énergie.
+Reaproveitam água; gastam energia.|Reuse water; use power.|Reaprovechan agua; gastan energía.|Recyclent l'eau ; consomment de l'énergie.
+Produzem comida; gastam água e energia.|Grow food; use water and power.|Producen comida; gastan agua y energía.|Produisent de la nourriture ; consomment eau et énergie.
+Reduz a radiação. Cada nível custa mais.|Reduces radiation. Each level costs more.|Reduce la radiación. Cada nivel cuesta más.|Réduit la radiation. Chaque niveau coûte plus.
+Guardam energia para a noite.|Store power for the night.|Guardan energía para la noche.|Stockent l'énergie pour la nuit.
+Máximo|Max|Máximo|Max.
+Periféricos · Hub USB|Peripherals · USB hub|Periféricos · Hub USB|Périphériques · Hub USB
+Sensibilidade|Sensitivity|Sensibilidad|Sensibilité
+Zona morta (USB)|Deadzone (USB)|Zona muerta (USB)|Zone morte (USB)
+Curva de resposta|Response curve|Curva de respuesta|Courbe de réponse
+Inverter eixo Y|Invert Y axis|Invertir eje Y|Inverser l'axe Y
+Transdutor tátil|Haptic transducer|Transductor háptico|Transducteur haptique
+🖥 Monitor secundário|🖥 Second monitor|🖥 Monitor secundario|🖥 Moniteur secondaire
+⛶ Tela cheia|⛶ Fullscreen|⛶ Pantalla completa|⛶ Plein écran
+Nenhum controle detectado.|No controller detected.|Ningún control detectado.|Aucun contrôleur détecté.
+Executar manobra|Run maneuver|Ejecutar maniobra|Exécuter la manœuvre
+Reiniciar controles|Reset controls|Reiniciar controles|Réinitialiser les commandes
+MISSÕES DE PILOTAGEM|PILOTING MISSIONS|MISIONES DE PILOTAJE|MISSIONS DE PILOTAGE
+Pontos acumulados:|Total points:|Puntos acumulados:|Points cumulés :
+RADAR DE ATITUDE|ATTITUDE RADAR|RADAR DE ACTITUD|RADAR D'ATTITUDE
+Hangar · guia do cockpit|Hangar · cockpit guide|Hangar · guía del cockpit|Hangar · guide du cockpit
+ESQUERDA|LEFT|IZQUIERDA|GAUCHE
+CENTRO|CENTER|CENTRO|CENTRE
+DIREITA|RIGHT|DERECHA|DROITE
+◀ Esq.|◀ Left|◀ Izq.|◀ Gauche
+Dir. ▶|Right ▶|Der. ▶|Droite ▶
+ÂNGULO DO LEME|RUDDER ANGLE|ÁNGULO DEL TIMÓN|ANGLE DU GOUVERNAIL
+LEME CENTRALIZADO|RUDDER CENTERED|TIMÓN CENTRADO|GOUVERNAIL CENTRÉ
+Alinhamento orbital|Orbital alignment|Alineación orbital|Alignement orbital
+Caixa de botões|Button box|Caja de botones|Boîtier de boutons
+▲ TAMPA|▲ COVER|▲ TAPA|▲ CAPOT
+ESCUDO RAD|RAD SHIELD|ESCUDO RAD|BOUCLIER RAD
+MODO ECO|ECO MODE|MODO ECO|MODE ÉCO
+SELETOR MFD|MFD SELECTOR|SELECTOR MFD|SÉLECTEUR MFD
+TRANSMITIR|TRANSMIT|TRANSMITIR|TRANSMETTRE
+CENTRALIZAR|CENTER|CENTRAR|CENTRER
+MANUTENÇÃO|MAINTENANCE|MANTENIMIENTO|MAINTENANCE
+
+Ana, comandante|Ana, commander|Ana, comandante|Ana, commandante
+Bruno, engenheiro|Bruno, engineer|Bruno, ingeniero|Bruno, ingénieur
+Carla, médica|Carla, doctor|Carla, médica|Carla, médecin
+Davi, botânico|Davi, botanist|Davi, botánico|Davi, botaniste
+Elisa, geóloga|Elisa, geologist|Elisa, geóloga|Elisa, géologue
+Fábio, piloto|Fábio, pilot|Fábio, piloto|Fábio, pilote
+Você é o comandante de uma base com uma tripulação de # a # astronautas. Cada decisão gasta energia, água, peças ou saúde. Sobreviva por # dias até a nave de reabastecimento chegar.|You are the commander of a base with a crew of # to # astronauts. Every decision costs power, water, parts or health. Survive # days until the resupply ship arrives.|Eres el comandante de una base con una tripulación de # a # astronautas. Cada decisión gasta energía, agua, piezas o salud. Sobrevive # días hasta que llegue la nave de reabastecimiento.|Vous êtes le commandant d'une base avec un équipage de # à # astronautes. Chaque décision coûte de l'énergie, de l'eau, des pièces ou de la santé. Survivez # jours jusqu'à l'arrivée du vaisseau de ravitaillement.
+Os dados reais são apenas informativos e não alteram os resultados da simulação.|Real data is informational only and does not change the simulation results.|Los datos reales son solo informativos y no alteran los resultados de la simulación.|Les données réelles sont purement informatives et ne modifient pas les résultats de la simulation.`.trim().split('\n').map(l=>l.split('|'));
+if(!LANGS.includes(prefs.lang)){const n=(navigator.language||'pt').slice(0,2);prefs.lang=LANGS.includes(n)?n:'pt'}
+let TRE=null;
+function setLang(){TRE=null;try{document.documentElement.lang={pt:'pt-BR',en:'en',es:'es',fr:'fr'}[prefs.lang];document.title={pt:'Posto Avançado · Centro de Controle',en:'Forward Outpost · Control Center',es:'Puesto Avanzado · Centro de Control',fr:'Poste Avancé · Centre de Contrôle'}[prefs.lang]}catch(e){}}
+function tr(h){const L=LANGS.indexOf(prefs.lang);if(L<1)return h;
+ if(!TRE){const rows=I18N.filter(r=>r[L]).sort((a,b)=>b[0].length-a[0].length);let off=1;TRE={rows:[]};
+  const parts=rows.map(r=>{const n=(r[0].match(/#/g)||[]).length;TRE.rows.push({o:off,t:r[L]});off+=1+n;return '('+r[0].replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/#/g,'(\\d+(?:[.,]\\d+)?)')+')'});
+  TRE.re=new RegExp('(?<!\\p{L})(?:'+parts.join('|')+')(?!\\p{L})','gu')}
+ return h.replace(TRE.re,(...a)=>{for(const r of TRE.rows)if(a[r.o]!==undefined){let k=r.o;return r.t.replace(/#/g,()=>a[++k])}return a[0]})}
+const langBtns=()=>`<span class="chs" role="group" aria-label="Idioma / Language">${LANGS.map(l=>`<button class="ch" lang="${l}" aria-pressed="${prefs.lang===l}" data-act="lang" data-arg="${l}" data-fk="l${l}">${LN[l]}</button>`).join('')}</span>`;
+setLang();
+function render(){
+ const ae=document.activeElement,fk=ae&&ae.dataset?ae.dataset.fk:null,scrollY=window.scrollY;
+ app.innerHTML=tr(S?gameView():intro());
+ try{document.body.classList.toggle('head-on',!!prefs.head)}catch(e){}
+ if(S)window.scrollTo(0,scrollY);
+ flightTelemetryUI();
+ const mk=!S?'':S.ev?'ev':S.over?'over':UI.abort?'abort':S.tut?'tut':'';
+ const modal=app.querySelector('.modal');
+ if(mk&&mk!==modalKey&&modal){const b=modal.querySelector('button');if(b)b.focus()}
+ else if(modal&&fk===null){const b=modal.querySelector('button');if(b&&!modal.contains(document.activeElement))b.focus()}
+ else if(fk){const el=app.querySelector(`[data-fk="${fk}"]`);if(el&&!modal)el.focus({preventScroll:true})}
+ modalKey=mk;updateSecondary();
+ save();
+ if(nasaData&&nasaData.query===nq())paintNasa();else refreshNasa();
+}
+
+/* ---------- Toast ---------- */
+const tst=document.createElement('div');tst.id='toast';tst.setAttribute('role','status');document.body.appendChild(tst);
+let tt;
+function say(t){beep(700,40);tst.textContent=tr(t);tst.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>tst.classList.remove('on'),3800)}
+function tx(){
+ S.log.unshift(`<p>Relatório enviado: O₂ ${Math.round(S.o2)}, água ${Math.round(S.wa)}, comida ${Math.round(S.food)}, energia ${Math.round(S.en)} de ${cap()}.</p>`);
+ S.log.unshift(`<p class="fact">Controle da Missão: recebido. Você sabia? ${FACTS[Math.floor(Math.random()*FACTS.length)]}</p>`);beep(520,80);render();
+}
+
+/* ---------- Entrada: ponteiro, teclado, cliques ---------- */
+let drag=null;
+function rawXY(e,el){const r=el.getBoundingClientRect();return[clamp(((e.clientX-r.left)/r.width-.5)*2.4,-1,1),clamp(((e.clientY-r.top)/r.height-.5)*2.4,-1,1)]}
+function joyAt(e,el){const[x,y]=rawXY(e,el);C.jx=clamp(shape(x)*prefs.sens,-1,1);C.jy=clamp(shape(y)*prefs.sens*(prefs.invY?-1:1),-1,1);att()}
+function lAt(e,el){const[x,y]=rawXY(e,el);C.lx=shape(x);C.ly=shape(y)*(prefs.invY?-1:1);att()}
+function levAt(i,y,el){const r=el.getBoundingClientRect();setTh(i,1-(y-r.top)/r.height);levUI(i)}
+function spring(){if(drag)return;C.jx*=.8;C.jy*=.8;if(Math.abs(C.jx)<.02&&Math.abs(C.jy)<.02)C.jx=C.jy=0;att();if(C.jx||C.jy)requestAnimationFrame(spring)}
+app.addEventListener('pointerdown',e=>{
+ const el=e.target.closest('[data-ctl]');if(!el)return;const k=el.dataset.ctl;
+ if(k==='joy'||k==='lstick'||k[0]==='t'){e.preventDefault();drag={k,el};try{el.setPointerCapture(e.pointerId)}catch(_){}if(k==='joy')joyAt(e,el);else if(k==='lstick')lAt(e,el);else levAt(+k[2],e.clientY,el)}
+ else{setPed(k,true);beep(260,40)}
+});
+app.addEventListener('pointermove',e=>{if(!drag)return;if(drag.k==='joy')joyAt(e,drag.el);else if(drag.k==='lstick')lAt(e,drag.el);else levAt(+drag.k[2],e.clientY,drag.el)});
+function rel(){if(drag){const k=drag.k;drag=null;if(k==='joy'){spring();beep(330,50)}else if(k==='lstick')beep(330,50);else beep(200+Math.round(C.th[+k[2]]*600),60)}}
+addEventListener('pointerup',rel);addEventListener('pointercancel',rel);
+app.addEventListener('keydown',e=>{
+ const el=e.target.closest('[data-ctl],.ck-clk');if(!el)return;
+ if(el.matches('.ck-clk')){if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click()}return}
+ const k=el.dataset.ctl;
+ if(k[0]==='t'){const i=+k[2],d={ArrowUp:.05,ArrowDown:-.05}[e.key];if(e.key==='Home')setTh(i,1);else if(e.key==='End')setTh(i,0);else if(d)setTh(i,C.th[i]+d);else return;e.preventDefault();levUI(i)}
+ else if(k==='lstick'){const m={ArrowLeft:[-.25,0],ArrowRight:[.25,0],ArrowUp:[0,-.25],ArrowDown:[0,.25]}[e.key];if(!m)return;e.preventDefault();C.lx=clamp(C.lx+m[0],-1,1);C.ly=clamp(C.ly+m[1],-1,1);att()}
+ else if(k==='joy'){const m={ArrowLeft:[-.25,0],ArrowRight:[.25,0],ArrowUp:[0,-.25],ArrowDown:[0,.25]}[e.key];if(!m)return;e.preventDefault();C.jx=clamp(C.jx+m[0],-1,1);C.jy=clamp(C.jy+m[1],-1,1);att()}
+ else if(e.key===' '||e.key==='Enter'){e.preventDefault();if(!e.repeat)setPed(k,true)}
+});
+app.addEventListener('keyup',e=>{const el=e.target.closest('[data-ctl]');if(el&&el.dataset.ctl==='joy'&&!drag)spring()});
+window.addEventListener('keydown',e=>{
+ if(e.key==='Tab'){ // prende o foco dentro do modal aberto
+  const m=document.querySelector('.modal');
+  if(m){const f=[...m.querySelectorAll('button:not(:disabled)')];if(f.length){const i=f.indexOf(document.activeElement);
+   if(e.shiftKey&&(i<=0)){e.preventDefault();f[f.length-1].focus()}else if(!e.shiftKey&&(i===f.length-1||i<0)){e.preventDefault();f[0].focus()}}}
+  return;
+ }
+ if(!S)return;
+ if(e.key==='Escape'){if(UI.abort){UI.abort=false;render()}else if(S.tut){S.tut=false;render()}return}
+ if(document.querySelector('.modal')||e.ctrlKey||e.metaKey||e.altKey||e.repeat||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
+ const k=e.key.toLowerCase();
+ if(k==='q'||k==='e'){e.preventDefault();setPed(k==='q'?'pl':'pr',true);beep(260,35)}
+ else if(k==='w'||k==='s'){e.preventDefault();const d=k==='w'?.05:-.05;setTh(0,C.th[0]+d);if(!C.link)setTh(1,C.th[1]+d);levUI(0);levUI(1)}
+ else if(k==='c'&&!e.target.closest('[data-ctl]')){e.preventDefault();centerAll();say('Controles centralizados.')}
+});
+const ACT={
+ diff:a=>{D=+a;render()},
+ start:a=>start(a),resume:()=>resume(),
+ lang:a=>{if(!LANGS.includes(a))return;prefs.lang=a;store.set('prefs',prefs);setLang();render();updateSecondary();beep(600,50)},
+  mute:()=>{prefs.sound=!prefs.sound;store.set('prefs',prefs);render();if(prefs.sound)beep(600,60)},
+ menu:()=>{save();S=null;UI.abort=false;render()},
+ 'new':()=>{S=null;render()},
+ build:a=>build(a),toggle:a=>toggle(a),maint:()=>maint(),end:()=>endDay(),choose:a=>choose(+a),
+ abort:()=>{UI.abort=true;render()},
+ 'abort-no':()=>{UI.abort=false;render()},
+ 'abort-yes':()=>{UI.abort=false;finish(false,'Missão abortada pelo comandante.')},
+ 'tut-open':()=>{S.tut=true;render()},'tut-close':()=>{S.tut=false;render()},
+ edu:a=>{S.edu=a;render()},tx:()=>tx(),
+ fmission:a=>selectFlightMission(+a),dock:()=>tryDock(),
+ center:()=>{centerAll();beep(440,50)},
+ 'rudder-center':()=>{C.yaw=0;C.pl=C.pr=0;pedUI();att();say('Leme centralizado.')},
+ 'reset-flight':()=>{resetControls();levUI(0);levUI(1);pedUI();att();say('Controles de pilotagem reiniciados.')},
+ nasa:()=>refreshNasa(true),
+ profile:a=>{prefs.profile=a;store.set('prefs',prefs);C.lx=C.ly=0;render()},
+ pref:a=>{prefs[a]=!prefs[a];store.set('prefs',prefs);if(a==='haptic'){if(prefs.haptic){Rumble.on();buzz([80,40,80])}else Rumble.off()}if(a==='head')enableHead();render()},
+ secondary:()=>openSecondary(),fs:()=>toggleFs(),
+ mfd:a=>{UI.mfd=a;beep(420,40);render()},
+ 'mfd-next':()=>{UI.mfd=MFDK[(MFDK.indexOf(UI.mfd)+1)%MFDK.length];beep(420,40);render()},
+ sw:a=>{S.sw[a]=!S.sw[a];if(!S.sw[a])UI.cover[a]=false;beep(S.sw[a]?620:340,50);buzz([30]);S.log.unshift(`<p class="tip">Caixa de botões: ${{shield:'Escudo de radiação',eco:'Modo econômico',hold:'Hold de atitude'}[a]} ${S.sw[a]?'ligado':'desligado'}.</p>`);render()},
+ cover:a=>{UI.cover[a]=true;beep(480,40);render()},
+ link:()=>{C.link=!C.link;if(C.link){setTh(1,C.th[0]);levUI(1)}beep(400,40);render()},
+ caution:()=>{const c=critList();say(c.length?'MASTER CAUTION: '+c.join(', ')+'.':'Nenhum alarme crítico. Sistemas nominais.')},
+ guide:a=>{UI.gd=+a;render()}
+};
+app.addEventListener('click',e=>{
+ const s=e.target.closest('[data-say]');if(s){say(s.dataset.say);return}
+ const a=e.target.closest('[data-act]');if(!a)return;
+ const f=ACT[a.dataset.act];if(f)f(a.dataset.arg);
+});
+
+/* ---------- Dados reais da NASA (informativos, com cache) ---------- */
+let nasaData=null,nasaPromise=null;
+const nq=()=>S&&S.site==='marte'?'Mars':'Moon';
+const htmlSafe=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nasaDate=d=>d.toISOString().slice(0,10);
+const memCache={},TTL=30*60*1000;
+async function cachedJson(key,url,force){
+ const now=Date.now();
+ if(!force){
+  if(memCache[key]&&now-memCache[key].t<TTL)return memCache[key].v;
+  try{const s=JSON.parse(sessionStorage.getItem('pa6n:'+key)||'null');if(s&&now-s.t<TTL){memCache[key]=s;return s.v}}catch(e){}
+ }
+ const r=await fetch(url,{headers:{Accept:'application/json'}});
+ if(!r.ok)throw new Error(r.status===429?'limite':'HTTP '+r.status);
+ const v=await r.json(),o={t:now,v};memCache[key]=o;
+ try{sessionStorage.setItem('pa6n:'+key,JSON.stringify(o))}catch(e){}
+ return v;
+}
+function nasaPanel(){
+ const dest=(S&&S.site==='marte')?'Marte':'Lua';
+ return `<section class="nasa-api" id="nasa-api-panel"><div class="nasa-head"><h3>Dados ao vivo · APIs oficiais da NASA</h3><button class="nasa-refresh" data-act="nasa">↻ Atualizar dados</button></div><div class="nasa-grid"><article class="nasa-card"><h4>☀️ Atividade solar · DONKI</h4><div id="nasa-space"><p>Carregando eventos recentes de clima espacial…</p></div></article><article class="nasa-card"><h4>🌌 Imagem astronômica do dia</h4><div id="nasa-apod"><p>Buscando publicação da NASA…</p></div></article><article class="nasa-card"><h4>🛰️ Exploração de ${dest}</h4><div id="nasa-explore"><p>Buscando imagens no acervo NASA…</p></div></article></div><div class="nasa-status" id="nasa-status" aria-live="polite">Os dados reais são apenas informativos e não alteram os resultados da simulação.</div></section>`;
+}
+function refreshNasa(force){
+ if(nasaPromise&&!force)return nasaPromise;
+ const end=new Date(),start=new Date(end);start.setDate(end.getDate()-7);
+ const a=nasaDate(start),b=nasaDate(end),q=nq(),K='https://api.nasa.gov',key='api_key=DEMO_KEY';
+ nasaPromise=(async()=>{
+  const jobs=[['flr'+a,`${K}/DONKI/FLR?startDate=${a}&endDate=${b}&${key}`],['cme'+a,`${K}/DONKI/CME?startDate=${a}&endDate=${b}&${key}`],['apod'+b,`${K}/planetary/apod?${key}`],['img'+q,`https://images-api.nasa.gov/search?q=${q}&media_type=image&page_size=5`]];
+  const t=await Promise.allSettled(jobs.map(j=>cachedJson(j[0],j[1],force)));
+  const lim=t.some(x=>x.status==='rejected'&&x.reason&&x.reason.message==='limite');
+  nasaData={flr:t[0].value||null,cme:t[1].value||null,apod:t[2].value||null,images:t[3].value||null,failed:t.filter(x=>x.status==='rejected').length,limited:lim,range:`${a} a ${b}`,query:q};
+  paintNasa();
+ })().catch(()=>{}).finally(()=>{nasaPromise=null});
+ return nasaPromise;
+}
+const setNasaHtml=(id,h)=>{const el=document.getElementById(id);if(el)el.innerHTML=h};
+function paintNasa(){
+ if(!nasaData||!document.getElementById('nasa-api-panel'))return;
+ const ev=[];
+ if(Array.isArray(nasaData.flr))nasaData.flr.slice(-4).forEach(e=>ev.push({date:e.beginTime||e.peakTime||'',name:'Erupção solar',detail:`Classe ${e.classType||'não informada'}${e.sourceLocation?' · '+e.sourceLocation:''}`}));
+ if(Array.isArray(nasaData.cme))nasaData.cme.slice(-4).forEach(e=>ev.push({date:e.startTime||'',name:'Ejeção de massa coronal',detail:e.note||e.activityID||'Evento registrado no catálogo'}));
+ ev.sort((x,y)=>String(y.date).localeCompare(String(x.date)));
+ setNasaHtml('nasa-space',ev.length?ev.slice(0,5).map(e=>`<div class="nasa-event"><b>${htmlSafe(e.name)}</b><p>${htmlSafe(e.detail)}</p><small>${htmlSafe(e.date||'Data não informada')}</small></div>`).join(''):`<p>Nenhum evento listado no período (${htmlSafe(nasaData.range)}), ou catálogo indisponível.</p>`);
+ let ap=nasaData.apod;if(Array.isArray(ap))ap=ap[0];
+ if(ap&&typeof ap==='object'){
+  const title=ap.title||'Imagem astronômica da NASA',desc=String(ap.explanation||''),img=ap.media_type==='video'?'':(ap.url||ap.hdurl||''),safe=typeof img==='string'&&/^https:\/\//i.test(img)?img:'';
+  setNasaHtml('nasa-apod',`<b>${htmlSafe(title)}</b><p>${htmlSafe(desc.slice(0,240))}${desc.length>240?'…':''}</p><small>Texto original da NASA, em inglês.</small>${safe?`<img class="nasa-photo" src="${htmlSafe(safe)}" alt="${htmlSafe(title)}" loading="lazy">`:''}<p><a class="nasa-link" href="https://apod.nasa.gov/apod/" target="_blank" rel="noopener">Ver no site da NASA ↗</a></p>`);
+ }else setNasaHtml('nasa-apod','<p>Imagem do dia indisponível no momento. Tente atualizar mais tarde.</p>');
+ const items=(nasaData.images&&nasaData.images.collection&&nasaData.images.collection.items)||[],item=items.find(x=>x.links&&x.links.some(l=>l.render==='image'))||items[0];
+ if(item){const d=(item.data&&item.data[0])||{},l=item.links&&item.links.find(l=>l.render==='image'),href=l&&l.href;
+  setNasaHtml('nasa-explore',`<b>${htmlSafe(d.title||'Imagem do acervo NASA')}</b><p>${htmlSafe((d.description||'Registro do acervo de imagens da NASA.').slice(0,200))}…</p>${href&&/^https:\/\//i.test(href)?`<img class="nasa-photo" src="${htmlSafe(href)}" alt="${htmlSafe(d.title||'Imagem NASA')}" loading="lazy">`:''}<p><a class="nasa-link" href="https://images.nasa.gov/search?q=${encodeURIComponent(nasaData.query)}" target="_blank" rel="noopener">Explorar acervo NASA ↗</a></p>`);
+ }else setNasaHtml('nasa-explore','<p>Não foi encontrada imagem agora. Consulte o acervo oficial da NASA.</p>');
+ const st=document.getElementById('nasa-status');
+ if(st)st.textContent=`Consulta: ${nasaData.range}. ${nasaData.limited?'Limite de uso da chave pública atingido; tente novamente em alguns minutos. ':nasaData.failed?nasaData.failed+' fonte(s) indisponível(is). ':''}Dados informativos — não controlam os medidores nem os eventos do jogo.`;
+}
+
+/* ---------- Manche esquerdo (HOSAS) ---------- */
+function lstick(){return `<svg id="lstick" data-ctl="lstick" class="ck-svg" viewBox="0 0 120 120" tabindex="0" role="group" aria-label="Manche esquerdo: lateral e potência. Arraste ou use as setas"><ellipse cx="60" cy="106" rx="38" ry="10" fill="#0c1119" stroke="#4a5568"/><g id="lstick-g" transform="rotate(${Math.round(C.lx*28)} 60 102) translate(0 ${Math.round(C.ly*8)})"><rect x="52" y="40" width="16" height="64" rx="7" fill="#2b3a52" stroke="#9fb0c8"/><rect x="42" y="14" width="36" height="32" rx="12" fill="#1b2230" stroke="#ffc45c" stroke-width="2"/><circle cx="52" cy="26" r="4" fill="#ffc45c"/><circle cx="68" cy="26" r="4" fill="#63ddff"/></g></svg>`}
+function lstickUI(){const s=document.getElementById('lstick-g');if(s)s.setAttribute('transform',`rotate(${Math.round(C.lx*28)} 60 102) translate(0 ${Math.round(C.ly*8)})`)}
+
+/* ---------- MFD, caixa de botões, periféricos e guia ---------- */
+const MFDN={PWR:'Energia',NAV:'Navegação',SYS:'Sistemas'},MFDK=['PWR','NAV','SYS'];
+function mfdTabs(){return `<div class="chs" role="tablist" aria-label="Páginas do MFD">${MFDK.map(k=>`<button class="ch" role="tab" aria-selected="${UI.mfd===k}" aria-pressed="${UI.mfd===k}" data-act="mfd" data-arg="${k}" data-fk="mfd-${k}">${MFDN[k]}</button>`).join('')}</div>`}
+function mfdOther(p){
+ if(UI.mfd==='NAV'){const m=FLIGHT_MISSIONS[S.fl.i];return `<div class="mfd-nav"><div>${missionRadar(m)}<span class="dm">Missão ${S.fl.i+1}: ${m.name}. Alvo azul, zona vermelha, nave amarela.</span></div><div>${radar()}<span class="dm">Reabastecimento em ${Math.max(0,MAXD-S.d+1)} dias</span></div></div>`}
+ return `${matrix(p)}<div style="margin-top:10px">${spark()}</div><span class="dm">Toque numa célula para ler o valor exato.</span>`;
+}
+function critList(){const c=[];if(S.o2<30)c.push('O₂ baixo');if(S.wa<25)c.push('água baixa');if(S.food<25)c.push('comida baixa');if(S.en/cap()<.25)c.push('energia baixa');if(S.h<40)c.push('saúde crítica');return c}
+const BB=[['shield','ESCUDO RAD','+6 energia/dia · −40% radiação',true],['eco','MODO ECO','−15% consumo · −8% eficiência',false],['hold','HOLD ATITUDE','Guinada volta a 0° · nota máx. 89',false]];
+function btnBox(){
+ const crit=critList().length>0,idx=MFDK.indexOf(UI.mfd);
+ const sw=BB.map(([k,n,d,g])=>{const on=!!S.sw[k],open=!g||UI.cover[k]||on;
+  return `<div class="bb-cell">${open?`<button class="bb-toggle${on?' on':''}" role="switch" aria-checked="${on}" aria-label="${n}" data-act="sw" data-arg="${k}" data-fk="sw2-${k}"><i></i></button>`:`<button class="bb-cover" aria-label="Levantar a tampa de proteção de ${n}" data-act="cover" data-arg="${k}" data-fk="cv-${k}">▲ TAMPA</button>`}<span class="bb-led${on?' on':''}"></span><b>${n}</b><small>${d}</small></div>`}).join('');
+ const link=`<div class="bb-cell"><button class="bb-toggle${C.link?' on':''}" role="switch" aria-checked="${C.link}" aria-label="Manetes ligadas" data-act="link" data-fk="sw2-link"><i></i></button><span class="bb-led${C.link?' on':''}"></span><b>MANETES LIGADAS</b><small>Move as duas juntas</small></div>`;
+ const rot=`<div class="bb-cell"><button class="bb-rot" aria-label="Seletor de página do MFD: ${MFDN[UI.mfd]}" data-act="mfd-next" data-fk="rot"><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="#1b2230" stroke="#c9d2de" stroke-width="3"/><g transform="rotate(${[-50,0,50][idx]} 30 30)"><path d="M30 8V26" stroke="#ff7a3c" stroke-width="4" stroke-linecap="round"/></g></svg></button><b>SELETOR MFD</b><small>${MFDN[UI.mfd]}</small></div>`;
+ return `<div class="bb">${sw}${link}${rot}</div><div class="bb bb-push-row"><button class="bb-push" data-act="tx" data-fk="bp-tx">TRANSMITIR</button><button class="bb-push" data-act="center" data-fk="bp-c">CENTRALIZAR</button><button class="bb-push" ${S.parts<2?'disabled':''} data-act="maint" data-fk="bp-m">MANUTENÇÃO</button></div><button class="bb-push caution${crit?' blink':''}" style="margin-top:10px" data-act="caution" data-fk="bp-caut">⚠ MASTER CAUTION${crit?' · '+critList().length:''}</button>`;
+}
+function settingsView(){
+ const ps=pads(),sl=(k,l,v,min,max)=>`<label class="rg"><span>${l}</span><input type="range" data-pref="${k}" min="${min}" max="${max}" value="${v}" aria-label="${l}"><output id="o-${k}">${v}%</output></label>`,
+ tg=(k,l)=>`<button class="ch" aria-pressed="${!!prefs[k]}" data-act="pref" data-arg="${k}" data-fk="pf-${k}">${l}</button>`;
+ return `<div class="chs" role="group" aria-label="Perfil de controle"><button class="ch" aria-pressed="${prefs.profile==='hotas'}" data-act="profile" data-arg="hotas" data-fk="prof-hotas">HOTAS</button><button class="ch" aria-pressed="${prefs.profile==='hosas'}" data-act="profile" data-arg="hosas" data-fk="prof-hosas">HOSAS</button></div>
+ ${sl('sens','Sensibilidade',Math.round(prefs.sens*100),70,150)}${sl('dz','Zona morta (USB)',Math.round(prefs.dz*100),0,25)}${sl('expo','Curva de resposta',Math.round(prefs.expo*100),0,100)}
+ <div class="chs">${tg('invY','Inverter eixo Y')}${tg('head','Head tracking')}${tg('haptic','Transdutor tátil')}</div>
+ <div class="chs"><button class="ch" data-act="secondary" data-fk="sec">🖥 Monitor secundário</button><button class="ch" data-act="fs" data-fk="fs">⛶ Tela cheia</button></div>
+ <h3 class="sub">Hub USB · controles detectados</h3>${ps.length?ps.map(g=>`<div class="pad">🎮 ${htmlSafe(String(g.id).slice(0,52))}<small class="dm">${g.axes.length} eixos · ${g.buttons.length} botões · ${g.mapping==='standard'?'mapeamento padrão':'mapeamento genérico'}</small></div>`).join(''):'<p class="dm">Nenhum controle detectado. Conecte um joystick, HOTAS ou HOSAS por USB e mova um eixo ou aperte um botão.</p>'}
+ <span class="dm" style="margin-top:6px">Padrão: direito = atitude, esquerdo = lateral e potência, gatilhos = leme, botão 1 = executar manobra, botão 2 = centralizar. Controles genéricos: eixos 0/1 = manche, 2 = leme, 3 = manete.</span>`;
+}
+const GUIDE=[
+ {t:'Controles de voo',i:[
+  ['HOSAS (dois manches)','Mão direita gira a nave; mão esquerda controla os propulsores direcionais. É o padrão ouro para naves espaciais.','Perfil HOSAS: manche direito = atitude; manche esquerdo = propulsão lateral (X) e potência (Y).'],
+  ['HOTAS (manche + manete)','Joystick principal com manete de potência dedicada, ideal para naves maiores.','Perfil HOTAS: manche + duas manetes, que podem ser ligadas (W/S move ambas).'],
+  ['Pedais de leme','Eixo analógico extra nos pés, usado para guinada.','Pedais na tela, teclas Q/E e gatilhos do controle.']]},
+ {t:'Painéis e instrumentos',i:[
+  ['Caixa de botões','Chaves toggle, botões iluminados e seletores rotativos ativam sistemas sem tirar os olhos da tela.','Caixa com chaves protegidas por tampa, seletor rotativo e MASTER CAUTION. As chaves mudam a economia da base.'],
+  ['MFDs e tablets','Telas multifuncionais programáveis com telemetria, mapas e atalhos.','MFD com 3 páginas: energia, navegação e sistemas.'],
+  ['Monitor secundário','Uma segunda tela mostra o status da nave sem poluir a principal.','O botão "Monitor secundário" abre uma janela com telemetria ao vivo.']]},
+ {t:'Estrutura e ergonomia',i:[
+  ['Cockpit rígido ou suportes','Estruturas estáveis evitam que os controles escorreguem em manobras bruscas.','Sensibilidade, zona morta e curva de resposta ajustáveis compensam folgas e deriva do equipamento.'],
+  ['Assento confortável','Banco concha ou automotivo sustenta a coluna em sessões longas.','(físico) Sem equivalente no software.'],
+  ['Hub USB energizado','Muitos periféricos juntos exigem hub com fonte própria para evitar desconexões.','O painel Hub USB lista os controles detectados pelo navegador.']]},
+ {t:'Imersão',i:[
+  ['Ultrawide, tela tripla ou VR','Mais visão periférica e noção de profundidade.','Use Tela cheia (F11) no monitor largo; a janela da cabine ocupa a largura toda.'],
+  ['Head tracking','A câmera acompanha a cabeça (TrackIR, Beam Eye Tracker).','Head tracking move a vista externa pelo mouse (ou giroscópio no celular). Rastreadores que emulam o mouse também funcionam.'],
+  ['Transdutores táteis','Motores sob o assento transformam graves em vibração.','Transdutor tátil: ronco grave proporcional à potência, e vibração do aparelho e do controle nos alertas.']]}
+];
+function guideView(){
+ const g=GUIDE[UI.gd]||GUIDE[0];
+ return `<div class="chs" role="tablist" aria-label="Seções do guia">${GUIDE.map((x,i)=>`<button class="ch" role="tab" aria-selected="${UI.gd===i}" aria-pressed="${UI.gd===i}" data-act="guide" data-arg="${i}" data-fk="gd${i}">${x.t}</button>`).join('')}</div>${g.i.map(x=>`<div class="gd"><b>${x[0]}</b><p>${x[1]}</p><p class="g">No jogo: ${x[2]}</p></div>`).join('')}`;
+}
+
+/* ---------- Monitor secundário (janela separada) ---------- */
+let sec=null;
+function secHtml(){
+ if(!S)return '<h1>Posto Avançado</h1><p class="d">Aguardando missão na janela principal…</p>';
+ const p=project(),bar=(n,v,c)=>`<div class="b"><span>${n}</span><i><u style="width:${clamp(v,0,100)}%;background:${c}"></u></i><b>${Math.round(v)}</b></div>`;
+ return `<h1>${S.site==='lua'?'Base Lunar':'Base Marciana'} · Dia ${Math.min(S.d,MAXD)}/${MAXD}</h1><p class="d">${DN[S.D]} · autonomia ${p.aut===null?'estável':p.aut+' dias'} · ${S.parts} peças</p>`
+ +bar('O₂',S.o2,'#5ad1ff')+bar('Água',S.wa,'#8fa8ff')+bar('Comida',S.food,'#9be564')+bar('Energia',S.en/cap()*100,'#ffd447')+bar('Saúde',S.h,'#ff86a8')+bar('Equip.',S.cond,'#dfe8f5')
+ +`<p class="d">Geração ${p.prod.toFixed(0)} · consumo ${p.use.toFixed(0)} · radiação ${p.msv.toFixed(2)} mSv/dia</p>`
+ +(S.ev?`<div class="al">ALERTA: ${S.ev.t}</div>`:'')+(S.over?`<div class="al">${S.over.win?'Missão cumprida':'Missão encerrada'}</div>`:'')
+ +`<div class="lg">${S.log.slice(0,6).join('')}</div>`;
+}
+function updateSecondary(){try{if(!sec||sec.closed)return;const r=sec.document.getElementById('r');if(r)r.innerHTML=tr(secHtml())}catch(e){}}
+function openSecondary(){
+ try{
+  if(sec&&!sec.closed){sec.focus();return}
+  sec=window.open('','pa-secondary','width=560,height=740');
+  if(!sec){say('O navegador bloqueou a janela. Permita pop-ups para este arquivo.');return}
+  sec.document.write('<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Posto Avançado · Monitor secundário</title><style>body{margin:0;padding:16px;background:#060b14;color:#e8f3ff;font:15px/1.4 system-ui,sans-serif}h1{margin:0 0 4px;font-size:1.4rem;color:#7fe6ff}.d{color:#9db3cc;font-size:.85rem;margin:4px 0 12px}.b{display:grid;grid-template-columns:70px 1fr 36px;gap:8px;align-items:center;margin:6px 0}.b i{height:14px;background:#13243a;border-radius:7px;overflow:hidden}.b u{display:block;height:100%}.b b{text-align:right}.al{margin:12px 0;padding:10px;border:2px solid #ff777d;border-radius:8px;color:#ffd8d6;font-weight:700}.lg{margin-top:14px;font-size:.85rem;color:#c4d3e6}.lg p{margin:0 0 6px}.tip{color:#ffc15c}.fact{color:#7be8ff}.alert{color:#ff8a80}</style><body><div id="r"></div>');
+  sec.document.close();updateSecondary();say('Monitor secundário aberto. Arraste a janela para a outra tela.');
+ }catch(e){say('Não foi possível abrir o monitor secundário.')}
+}
+function toggleFs(){try{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen()}catch(e){}}
+
+/* ---------- Head tracking ---------- */
+function headSet(x,y){try{const s=document.documentElement.style;s.setProperty('--hx',(-x*22).toFixed(1)+'px');s.setProperty('--hy',(-y*12).toFixed(1)+'px')}catch(e){}}
+function enableHead(){
+ if(!prefs.head){headSet(0,0);return}
+ try{if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission)DeviceOrientationEvent.requestPermission().catch(()=>{})}catch(e){}
+}
+addEventListener('pointermove',e=>{if(!prefs.head||drag)return;headSet((e.clientX/innerWidth-.5)*2,(e.clientY/innerHeight-.5)*2)});
+addEventListener('deviceorientation',e=>{if(!prefs.head||e.gamma==null)return;headSet(clamp(e.gamma/35,-1,1),clamp((e.beta-45)/35,-1,1))});
+
+/* ---------- Transdutor tátil (ronco grave) ---------- */
+const Rumble={o:null,g:null,
+ on(){if(!prefs.haptic||this.o)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=90;this.o=AC.createOscillator();this.o.type='sawtooth';this.o.frequency.value=34;this.g=AC.createGain();this.g.gain.value=0;this.o.connect(f);f.connect(this.g);this.g.connect(AC.destination);this.o.start()}catch(e){this.o=null;this.g=null}},
+ off(){try{if(this.o)this.o.stop()}catch(e){}this.o=null;this.g=null},
+ set(l){if(!prefs.haptic){if(this.o)this.off();return}if(!this.o)return;try{this.g.gain.setTargetAtTime(Math.min(.25,l*.12),AC.currentTime,.12);this.o.frequency.setTargetAtTime(30+l*22,AC.currentTime,.2)}catch(e){}}
+};
+addEventListener('pointerdown',()=>{if(prefs.haptic)Rumble.on()},{passive:true});
+
+/* ---------- Controles USB reais (Gamepad API) ---------- */
+const padPrev={};let padL=false,padStick=false;
+function pollPads(){
+ const ps=pads();padL=false;if(!ps.length)return false;let ch=false;
+ for(const p of ps){
+  const pv=padPrev[p.index]||(padPrev[p.index]={b:[],a:[]}),ax=i=>p.axes[i]||0,dz=prefs.dz,btn=i=>!!(p.buttons[i]&&p.buttons[i].pressed);
+  if(p.mapping==='standard'){
+   const rx=shape(ax(2),dz),ry=shape(ax(3),dz),lx=shape(ax(0),dz),ly=shape(ax(1),dz),yw=(p.buttons[7]?p.buttons[7].value:0)-(p.buttons[6]?p.buttons[6].value:0);
+   if(!(drag&&drag.k==='joy')&&(rx||ry||padStick)){C.jx=clamp(rx*prefs.sens,-1,1);C.jy=clamp(ry*prefs.sens*(prefs.invY?-1:1),-1,1);padStick=!!(rx||ry);ch=true}
+   if(!(drag&&drag.k==='lstick')&&(lx||ly)){C.lx=lx;C.ly=ly*(prefs.invY?-1:1);padL=true;ch=true}
+   if(Math.abs(yw)>.05){C.yaw=clamp(yw*30,-30,30);ch=true}
+  }else{
+   const gx=shape(ax(0),dz),gy=shape(ax(1),dz);
+   if(!(drag&&drag.k==='joy')&&(gx||gy||padStick)){C.jx=clamp(gx*prefs.sens,-1,1);C.jy=clamp(gy*prefs.sens*(prefs.invY?-1:1),-1,1);padStick=!!(gx||gy);ch=true}
+   if(p.axes.length>2&&Math.abs(ax(2))>dz+.05){C.yaw=clamp(ax(2)*30,-30,30);ch=true}
+   if(p.axes.length>3&&pv.a[3]!==undefined&&Math.abs(ax(3)-pv.a[3])>.01){const v=(1-ax(3))/2;setTh(0,v);if(!C.link)setTh(1,v);ch=true}
+   pv.a=[...p.axes];
+  }
+  if(btn(0)&&!pv.b[0])tryDock();
+  if(btn(1)&&!pv.b[1]){centerAll();say('Controles centralizados.')}
+  pv.b[0]=btn(0);pv.b[1]=btn(1);
+ }
+ return ch;
+}
+addEventListener('gamepadconnected',e=>{say('Controle detectado: '+String(e.gamepad.id).slice(0,40));if(!drag)render()});
+addEventListener('gamepaddisconnected',()=>{say('Controle desconectado.');if(!drag)render()});
+
+/* ---------- Laço de voo: manetes, hold, controles USB, tátil ---------- */
+let lastT=0,lastSig='';
+function tick(ts){
+ const dt=Math.min(.05,((ts-lastT)/1000)||0);lastT=ts;
+ try{
+  if(S&&!S.over){
+   const busy=!!(S.ev||UI.abort||S.tut);
+   if(!busy)pollPads();else padL=false;
+   const hosas=prefs.profile==='hosas';
+   if((hosas||padL)&&Math.abs(C.ly)>.05&&!busy){const d=-C.ly*dt*.7;setTh(0,C.th[0]+d);if(!C.link)setTh(1,C.th[1]+d)}
+   if(!(drag&&drag.k==='lstick')&&!padL&&(C.lx||C.ly)){const f=Math.pow(.002,dt);C.lx*=f;C.ly*=f;if(Math.abs(C.lx)<.01)C.lx=0;if(Math.abs(C.ly)<.01)C.ly=0}
+   if(S.sw&&S.sw.hold&&C.yaw){C.yaw*=Math.pow(.25,dt);if(Math.abs(C.yaw)<.4)C.yaw=0;pedUI()}
+   const sig=[C.jx,C.jy,C.lx,C.ly,C.yaw,C.th[0],C.th[1]].map(v=>v.toFixed(3)).join();
+   if(sig!==lastSig){lastSig=sig;att();levUI(0);levUI(1);pedUI()}
+   Rumble.set(busy&&S.ev?.9:(C.th[0]+C.th[1])/2*(S.ev?1.4:1));
+  }else Rumble.set(0);
+ }catch(e){}
+ requestAnimationFrame(tick);
+}
+app.addEventListener('input',e=>{
+ const t=e.target;if(!t.dataset||!t.dataset.pref)return;const k=t.dataset.pref,v=+t.value;
+ if(k==='sens')prefs.sens=v/100;else if(k==='dz')prefs.dz=v/100;else if(k==='expo')prefs.expo=v/100;
+ store.set('prefs',prefs);const o=document.getElementById('o-'+k);if(o)o.textContent=v+'%';
+});
+
+/* ---------- Boot ---------- */
+render();requestAnimationFrame(tick);
+EVENTS.push(E('Tempestade global de poeira','Uma tempestade gigante cobriu o planeta inteiro. O céu escureceu por vários dias.',['Economizar e esperar','Painéis quase parados por 5 dias. Use as baterias com cuidado.',()=>{S.dust=5;return 'A tempestade vai durar cerca de 5 dias.'}],['Desligar as estufas por hoje','Painéis parados por 5 dias, mas economiza 8 de energia agora.',()=>{S.dust=5;S.en=Math.max(0,S.en-0);S.on.farm=false;return 'Estufas desligadas. Religue quando a luz voltar.'}],'marte'));
+/* ---------- Expansão v6.1: briefing, eventos, conquistas, recordes e quiz STEM ---------- */
+(function(){
+const sub=(k,n)=>{S[k]=Math.max(0,S[k]-n)},add=(k,n)=>{S[k]=Math.min(100,S[k]+n)};
+EVENTS.push(
+ E('Gelo de água descoberto','Sondas encontraram gelo de água perto da base. Minerar rende água, mas gasta energia e peças.',['Minerar o gelo','Gasta 10 de energia e 2 peças; ganha 25 de água.',()=>{sub('en',10);sub('parts',2);add('wa',25);return 'Água extraída e purificada.'}],['Deixar para depois','Sem custo, sem ganho.',()=>'O gelo continua lá para uma próxima vez.']),
+ E('Atraso de suprimentos','A Terra avisou que uma carga de suprimentos vai atrasar.',['Racionar comida e água','Poupa 8 de cada, mas a tripulação fica cansada (-6 saúde).',()=>{add('food',8);add('wa',8);S.h-=6;return 'Rações menores. O moral caiu um pouco.'}],['Manter o consumo normal','Gasta 8 de comida e 8 de água de reserva.',()=>{sub('food',8);sub('wa',8);return 'A reserva diminuiu.'}]),
+ E('Pico de consumo de energia','Os equipamentos puxaram mais corrente que o normal.',['Cortar o laboratório por um tempo','Sem custo de energia, mas a tripulação perde conforto (-3 saúde).',()=>{S.h-=3;return 'Laboratório desligado. Energia preservada.'}],['Usar as baterias','Gasta 12 de energia.',()=>{sub('en',12);return 'As baterias seguraram o pico.'}]),
+ E('Colheita abundante','As plantas cresceram melhor que o esperado!',['Guardar tudo','Ganha 12 de comida.',()=>{add('food',12);return 'Despensa mais cheia.'}],['Enviar amostras para a Terra','Ganha 3 peças e 4 de comida.',()=>{S.parts+=3;add('food',4);return 'Os cientistas agradeceram. Peças ganhas.'}]),
+ E('Filtro entupido','Um filtro do reciclador entupiu e a água está sendo desperdiçada.',['Trocar o filtro','Gasta 2 peças.',()=>{sub('parts',2);return 'Filtro trocado.'}],['Seguir assim','Perde 10 de água.',()=>{sub('wa',10);return 'A água foi desperdiçada.'}])
+);
+const BRIEF=()=>({k:'Briefing',t:'Estratégia de alimentos',d:'Antes de partir, o Controle da Missão pergunta: de onde vem a comida da tripulação? Levar da Terra é seguro, mas pesa. Plantar dá autonomia, mas gasta água e energia.',o:[
+ ['Levar comida da Terra','+30 de comida, mas o transporte custa 2 peças.',()=>{add('food',30);sub('parts',2);return 'Despensa cheia, menos peças para construir.'}],
+ ['Plantar tudo na base','+1 estufa pronta, mas começa com 15 de comida e 10 de água a menos.',()=>{S.m.farm++;sub('food',15);sub('wa',10);return 'Mais autonomia no longo prazo, mais risco no começo.'}],
+ ['Meio a meio','+12 de comida e 1 peça a menos.',()=>{add('food',12);sub('parts',1);return 'Estratégia equilibrada.'}]]});
+const _start=start;start=function(site){_start(site);S.ev=BRIEF();S.evk=null;render()};
+const ACH=[['first','Primeira missão','Complete uma missão com sucesso.',w=>w],['self','Autossuficiente','Vença com 3 ou mais estufas.',w=>w&&S.m.farm>=3],['healthy','Tripulação saudável','Vença com saúde acima de 80.',w=>w&&S.h>80],['shield','Escudo de ferro','Vença com blindagem no nível 4.',w=>w&&S.m.shield>=4],['tech','Mecânico de bordo','Vença com equipamentos acima de 70%.',w=>w&&S.cond>70],['hard','Sobrevivente','Vença no modo Sobrevivência.',w=>w&&S.D===2],['both','Dois mundos','Vença na Lua e em Marte.',w=>w&&store.get('won',{}).lua&&store.get('won',{}).marte],['pilot','Piloto','Marque pontos numa missão de voo e vença.',w=>w&&S.fl.pts>0],['quiz','Cérebro STEM','Acerte as 3 perguntas do quiz.',()=>false]];
+const A=()=>store.get('ach',{});
+const grant=w=>{if(w){const o=store.get('won',{});o[S.site]=1;store.set('won',o)}const a=A(),n=[];ACH.forEach(x=>{if(!a[x[0]]&&x[3](w)){a[x[0]]=1;n.push(x[0])}});store.set('ach',a);return n};
+const _fin=finish;finish=function(w,y){_fin(w,y);try{S.newA=grant(w)}catch(e){S.newA=[]}render()};
+const QZ=[['Por que os painéis solares precisam de baterias na Lua?',['Para esfriar os painéis','Porque a noite lunar dura cerca de 14 dias terrestres','Porque a Lua não tem Sol'],1,'A noite lunar é longa: sem Sol, só as baterias mantêm a base ligada.'],['Como se faz oxigênio a partir da água?',['Por eletrólise: separando a água com eletricidade','Fervendo a água','Misturando com poeira lunar'],0,'A eletricidade separa a água em hidrogênio e oxigênio. Por isso ar e energia andam juntos.'],['O que ajuda a proteger contra a radiação?',['Folhas de papel','Camadas de solo, água ou materiais ricos em hidrogênio','Vidro comum fino'],1,'Quanto mais material no caminho das partículas, menos radiação chega aos astronautas.'],['Por que reciclar água é tão importante?',['Porque levar água da Terra é pesado e caro','Porque a água estraga rápido','Porque Marte não tem gravidade'],0,'Cada litro reaproveitado é um litro que não precisa vir da Terra.'],['Por que manutenção é uma decisão de engenharia?',['Porque equipamentos se desgastam e perdem eficiência','Porque peças brilham mais depois','Porque a Terra exige'],0,'Sem revisão, pequenas falhas viram emergências.'],['O que é uma compensação de engenharia (trade-off)?',['Uma escolha que melhora uma coisa e piora outra','Um tipo de foguete','Um erro de cálculo'],0,'Em missões reais, nenhuma decisão resolve tudo de graça.'],['Quanta luz do Sol Marte recebe em relação à Terra?',['Cerca de metade','O dobro','A mesma quantidade'],0,'Marte está mais longe do Sol, então os painéis rendem menos.'],['Para que servem as plantas na base?',['Fazer comida e renovar o ar, mas gastam água e energia','Só decorar','Produzir energia elétrica'],0,'Agricultura dá autonomia, mas compete com outros sistemas pelos recursos.']];
+const qzStart=()=>{const ix=QZ.map((_,i)=>i).sort(()=>Math.random()-.5).slice(0,3);S.qz={q:ix.map(i=>{const q=QZ[i];return{t:q[0],e:q[3],o:q[1].map((t,j)=>({t,c:j===q[2]})).sort(()=>Math.random()-.5)}}),i:0,ok:0,sel:null}};
+const qzEnd=()=>{const z=S.qz;S.over.sc+=z.ok*50;const k=S.site+'-'+S.D;if(S.over.sc>(best[k]||0)){best[k]=S.over.sc;store.set('best',best)}if(z.ok===3){const a=A();if(!a.quiz){a.quiz=1;store.set('ach',a);(S.newA=S.newA||[]).push('quiz')}}};
+const qzHtml=()=>{const z=S.qz;if(z.i>=3)return `<h2>Resultado: ${z.ok} de 3</h2><p>Bônus: +${z.ok*50} pontos na sua pontuação.</p><button class="go" data-x="done">Voltar ao relatório</button>`;
+ const q=z.q[z.i];return `<h2>Quiz STEM · ${z.i+1} de 3</h2><p>${q.t}</p>${q.o.map((o,j)=>`<button class="opt" data-x="ans" data-j="${j}" ${z.sel!=null?'disabled':''} style="${z.sel!=null&&o.c?'border-color:#4fe08a':z.sel===j?'border-color:#ff5a4d':''}"><b>${o.t}</b></button>`).join('')}${z.sel!=null?`<p class="dm">${q.e}</p><button class="go" data-x="next">${z.i<2?'Próxima':'Ver resultado'}</button>`:''}`};
+const extras=()=>{try{
+ if(!S){const a=A(),DNm=typeof DN!=='undefined'?DN:['Treinamento','Missão','Sobrevivência'];
+  app.insertAdjacentHTML('beforeend',`<section class="pn" style="margin-top:14px"><h3>Sala de troféus · ${Object.keys(a).length} de ${ACH.length}</h3>${ACH.map(x=>`<div class="row"><i class="led ${a[x[0]]?'on':''}"></i><span><b>${x[1]}</b><small class="dm">${x[2]}</small></span></div>`).join('')}<h3 style="margin-top:12px">Recordes</h3>${['lua','marte'].map(s=>[0,1,2].map(d=>`<div class="dm">${s==='lua'?'Lua':'Marte'} · ${DNm[d]}: ${best[s+'-'+d]||'sem recorde ainda'}</div>`).join('')).join('')}</section>`)}
+ else if(S.over&&S.over.sc!=null){const pn=app.querySelector('.modal .pn');if(!pn)return;if(S.qz){pn.innerHTML=qzHtml();return}
+  const nw=(S.newA||[]).map(id=>ACH.find(x=>x[0]===id)).filter(Boolean),b=pn.querySelector('button');
+  if(b)b.insertAdjacentHTML('beforebegin',(nw.length?`<p><b>Conquistas novas:</b> ${nw.map(x=>'🏆 '+x[1]).join(' · ')}</p>`:'')+(S.quizDone?'':`<button class="ch" data-x="quiz" style="margin:6px 0 10px">Fazer o quiz STEM (+50 por acerto)</button>`))}
+ else if(S.ev&&S.ev.k){const h=app.querySelector('#mt');if(h&&h.lastChild)h.lastChild.textContent=h.lastChild.textContent.replace('Alerta:',S.ev.k+':')}
+}catch(e){}};
+const _render=render;render=function(){_render();extras()};
+app.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b||!S)return;const x=b.dataset.x,z=S.qz;
+ if(x==='quiz'){qzStart();render();return}if(!z)return;
+ if(x==='ans'&&z.sel==null){z.sel=+b.dataset.j;if(z.q[z.i].o[z.sel].c)z.ok++;render()}
+ else if(x==='next'){z.i++;z.sel=null;if(z.i>=3)qzEnd();render()}
+ else if(x==='done'){S.qz=null;S.quizDone=true;render()}});
+render();
+})();
+/* ---------- Expansão v6.2: tripulação variável, cultivos e nome do comandante ---------- */
+(function(){
+const CFG=Object.assign({name:'',crew:4,crop:'batata'},store.get('cfg',{})),svc=()=>store.set('cfg',CFG);
+if(!CROPS[CFG.crop])CFG.crop='batata';if(![3,4,5,6].includes(CFG.crew))CFG.crew=4;
+const _s2=start;start=function(site){_s2(site);S.crew=CFG.crew;S.crop=CFG.crop;S.name=String(CFG.name||'').trim().slice(0,16);
+ S.log=[`<p>Controle da Missão: bem-vindo, comandante${S.name?' '+htmlSafe(S.name):''}! Mantenha os ${S.crew} astronautas vivos por ${MAXD} dias. Cultivo escolhido: ${CROPS[S.crop].n}.</p>`];render()};
+const sync=()=>{CREW[0]=(S&&S.name?htmlSafe(S.name):'Ana')+', comandante'};
+const note=n=>{const f=+(n*.75).toFixed(2),b=(n-4)*40;return `Consumo por dia: O₂ ${n}, água ${n}, comida ${f}. Energia base ${6+(n-4)*1.5}. Pontuação ${b>=0?'+':''}${b}.`};
+const panel=()=>{try{
+ if(!S){const sites=app.querySelector('.sites');if(sites&&!app.querySelector('#cfg-panel'))sites.insertAdjacentHTML('beforebegin',`<section class="pn" id="cfg-panel" style="margin:16px auto 0;max-width:720px;text-align:left"><h3>Tripulação e cultivo</h3><label class="dm" for="pname">Seu nome de comandante</label><input id="pname" maxlength="16" autocomplete="off" value="${htmlSafe(CFG.name)}" placeholder="Digite seu nome" style="width:100%;padding:8px 10px;margin:4px 0 12px;border-radius:8px;border:2px solid #456d93;background:#0a1422;color:#e8f3ff;font:inherit"><div class="dm">Tamanho da tripulação</div><div class="chs" role="group" aria-label="Tamanho da tripulação">${[3,4,5,6].map(n=>`<button class="ch" aria-pressed="${CFG.crew===n}" data-x="crew" data-j="${n}">${n} astronautas</button>`).join('')}</div><p class="dm" style="margin:0 0 12px">${note(CFG.crew)}</p><div class="dm">Cultivo principal das estufas</div><div class="chs" role="group" aria-label="Cultivo">${Object.keys(CROPS).map(k=>`<button class="ch" aria-pressed="${CFG.crop===k}" data-x="crop" data-j="${k}">${CROPS[k].n}</button>`).join('')}</div><p class="dm" style="margin:0">${CROPS[CFG.crop].d} Rendimento ×${CROPS[CFG.crop].f}, água ×${CROPS[CFG.crop].w}, energia ×${CROPS[CFG.crop].en}.</p></section>`)}
+ else if(S.over&&S.name&&!S.qz){const h=app.querySelector('#mt');if(h)h.textContent=h.textContent.replace(/[!.]$/,'')+', comandante '+S.name+(S.over.win?'!':'.')}
+}catch(e){}};
+const _r2=render;render=function(){sync();_r2();panel()};
+app.addEventListener('click',e=>{const b=e.target.closest('[data-x]');if(!b)return;const x=b.dataset.x;
+ if(x==='crew'){CFG.crew=+b.dataset.j;svc();render()}else if(x==='crop'){CFG.crop=b.dataset.j;svc();render()}});
+app.addEventListener('input',e=>{if(e.target&&e.target.id==='pname'){CFG.name=e.target.value.slice(0,16);svc()}});
+render();
+})();
+/* ---------- Expansão v6.3: mais missões de pilotagem ---------- */
+FLIGHT_MISSIONS.push(
+ {name:'Pouso lunar suave',tag:'ESPECIALISTA',objective:'Descer até o ponto de pouso com os motores em baixa potência, sem entrar na cratera.',goal:{x:-.25,y:.40,th:.22},obstacles:[{x:.35,y:.25,r:.38,name:'Cratera'}],hint:'Vá devagar para a esquerda e para baixo. Mantenha os dois motores perto de 22%.'},
+ {name:'Reentrada em Marte',tag:'MESTRE',objective:'Manter potência alta e guinada zerada, desviando da turbulência e da tempestade de poeira.',goal:{x:.15,y:-.35,th:.80},obstacles:[{x:-.40,y:.10,r:.40,name:'Turbulência'},{x:.55,y:.45,r:.28,name:'Tempestade de poeira'}],hint:'Suba um pouco à direita do centro. Motores perto de 80% e leme em 0°.'}
+);
+(function(){const _r3=render;render=function(){try{if(S&&S.fl){while(S.fl.res.length<FLIGHT_MISSIONS.length){S.fl.res.push(null);S.fl.rew.push(0)}}}catch(e){}_r3()};render()})();
+/* ---------- Expansão v6.4: painel NASA com dados de referência quando offline ---------- */
+(function(){
+const _p=paintNasa;
+paintNasa=function(){_p();try{
+ if(!nasaData||!(nasaData.failed>=3)||!document.getElementById('nasa-api-panel'))return;
+ const moon=!(S&&S.site==='marte');
+ setNasaHtml('nasa-space','<div class="nasa-event"><b>Clima espacial (referência)</b><p>Erupções solares e ejeções de massa coronal lançam partículas que aumentam a radiação. Por isso as bases precisam de abrigo blindado.</p><small>Fonte de referência: NASA DONKI</small></div>');
+ setNasaHtml('nasa-apod','<b>Radiação medida na superfície</b><p>Instrumentos em missões reais indicam cerca de 1,4 mSv por dia na superfície lunar e cerca de 0,67 mSv por dia em Marte. Na Terra, a média é bem menor.</p><small>Valores aproximados, de medições científicas publicadas.</small>');
+ setNasaHtml('nasa-explore',moon?'<b>Lua: o desafio da noite</b><p>A noite lunar dura cerca de 14 dias terrestres. Sem Sol, a energia vem de baterias ou de outras fontes. Foi isso que inspirou as baterias do jogo.</p>':'<b>Marte: poeira e frio</b><p>Marte recebe cerca de metade da luz solar da Terra e tem tempestades de poeira que podem cobrir o planeta. O frio extremo exige muita energia para aquecimento.</p>');
+ const st=document.getElementById('nasa-status');if(st)st.textContent='Sem acesso aos dados ao vivo da NASA neste ambiente. Mostrando informações de referência. Os dados ao vivo aparecem quando o jogo roda com internet liberada.';
+}catch(e){}};
+try{if(nasaData)paintNasa()}catch(e){}
+})();
+</script>
+</body>
+</html>
